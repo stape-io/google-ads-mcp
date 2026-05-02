@@ -14,22 +14,21 @@
 
 """Entry point for the MCP server."""
 
+import os
+
 from ads_mcp.coordinator import mcp
+from ads_mcp.resources import (
+    discovery,  # noqa: F401
+    metrics,  # noqa: F401
+    release_notes,  # noqa: F401
+    segments,  # noqa: F401
+)
 
 # The following imports are necessary to register the tools with the `mcp`
 # object, even though they are not directly used in this file.
 # The `# noqa: F401` comment tells the linter to ignore the "unused import"
 # warning.
-from ads_mcp.tools import search, core, get_resource_metadata  # noqa: F401
-from ads_mcp.resources import (
-    discovery,
-    metrics,
-    release_notes,
-    segments,
-)  # noqa: F401
-
-
-import os
+from ads_mcp.tools import core, get_resource_metadata, search  # noqa: F401
 
 
 def run_server() -> None:

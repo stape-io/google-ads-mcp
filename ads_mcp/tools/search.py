@@ -42,6 +42,7 @@ def search(
         conditions: List of conditions to filter the data, combined using AND clauses
         orderings: How the data is ordered
         limit: The maximum number of rows to return
+        login_customer_id: The customer ID of the manager account when accessing client accounts.
 
     """
     if login_customer_id:
@@ -114,6 +115,32 @@ def _search_tool_description() -> str:
 ### Hint for customer_id
     should be a string of numbers without punctuation
     if presented in the form 123-456-7890 remove the hyphens and use 1234567890
+
+### Hint for login_customer_id
+    WHEN TO USE:
+    - REQUIRED when customer_id is a client account (sub-account) under a manager (MCC)
+    - OMIT when querying the manager account directly (customer_id = manager ID)
+    - OMIT when customer_id is a standalone account (not under any manager)
+    - Use `list_accessible_customers` to discover which manager account grants access
+
+    FORMAT:
+    - Plain numeric string (no hyphens, no "customers/" prefix), same format as customer_id
+    - Example: "0123456789" not "customers/0123456789" or "012-345-6789"
+
+    EXAMPLE:
+    To query client account 6833594660 through manager 3209651415:
+        customer_id = "6833594660"
+        login_customer_id = "3209651415"
+
+    TROUBLESHOOTING:
+    - Error "USER_PERMISSION_DENIED": add login_customer_id with a manager account ID that has access
+    - Still failing: try a higher-level ancestor manager; use `list_accessible_customers` to identify candidates
+    - Developer token errors (DEVELOPER_TOKEN_NOT_APPROVED) and account enablement
+      (CUSTOMER_NOT_ENABLED) are separate issues unaffected by this parameter
+
+    NESTED HIERARCHIES:
+    - Any ancestor manager account that has access to customer_id is valid
+    - Prefer the closest (lowest-level) manager to minimise permission scope
 
 ### Hints for Dates
     All dates should be in the form YYYY-MM-DD and must include the dashes (-)
