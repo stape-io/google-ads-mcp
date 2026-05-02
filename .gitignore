@@ -22,7 +22,6 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-uv.lock
 MANIFEST
 
 # Unit test / coverage reports
@@ -37,3 +36,6 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 .nox/
+
+.env
+.venv
