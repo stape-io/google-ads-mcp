@@ -14,7 +14,7 @@
 
 """Discovery document resource."""
 
-import urllib.request
+import httpx
 
 from ads_mcp.coordinator import mcp
 
@@ -39,9 +39,7 @@ def get_discovery_document() -> str:
         str: The discovery document in JSON format.
     """
     url = "https://googleads.googleapis.com/$discovery/rest?version=v24"
-    req = urllib.request.Request(
-        url,
-        headers={"User-Agent": "Mozilla/5.0"},
-    )
-    with urllib.request.urlopen(req) as response:
-        return response.read().decode("utf-8")  # type: ignore[no-any-return]
+
+    response = httpx.get(url, headers={"User-Agent": "Mozilla/5.0"})
+    response.raise_for_status()
+    return response.text

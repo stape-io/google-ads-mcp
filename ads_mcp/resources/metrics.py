@@ -14,7 +14,7 @@
 
 """Metrics resource."""
 
-import urllib.request
+import httpx
 
 from ads_mcp.coordinator import mcp
 
@@ -38,9 +38,6 @@ def get_metrics() -> str:
         str: The metrics documentation in HTML format.
     """
     url = "https://developers.google.com/google-ads/api/fields/latest/metrics"
-    req = urllib.request.Request(
-        url,
-        headers={"User-Agent": "Mozilla/5.0"},
-    )
-    with urllib.request.urlopen(req) as response:
-        return response.read().decode("utf-8")  # type: ignore[no-any-return]
+    response = httpx.get(url, headers={"User-Agent": "Mozilla/5.0"})
+    response.raise_for_status()
+    return response.text

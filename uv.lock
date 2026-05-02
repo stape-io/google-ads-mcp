@@ -640,6 +640,7 @@ source = { editable = "." }
 dependencies = [
     { name = "fastmcp" },
     { name = "google-ads" },
+    { name = "httpx" },
     { name = "joserfc" },
     { name = "mcp", extra = ["cli"] },
 ]
@@ -676,6 +677,7 @@ requires-dist = [
     { name = "black", marker = "extra == 'dev'" },
     { name = "fastmcp", specifier = ">=3.2.0" },
     { name = "google-ads", specifier = ">=30.1.0" },
+    { name = "httpx", specifier = ">=0.28.1" },
     { name = "joserfc", specifier = ">=1.6.1" },
     { name = "mcp", extras = ["cli"], specifier = ">=1.2.0" },
     { name = "nox", marker = "extra == 'dev'", specifier = ">=2025.5.1,<2026" },
