@@ -114,6 +114,7 @@ def _create_mcp_server() -> FastMCP:
 
 mcp = _create_mcp_server()
 
+
 @mcp.custom_route("/healthz", methods=["GET"])
 def healthz(_request: Request) -> Response:
     return JSONResponse({"status": "ok"})

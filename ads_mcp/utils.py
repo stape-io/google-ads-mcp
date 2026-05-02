@@ -63,22 +63,25 @@ logging.basicConfig(level=logging.INFO)
 _READ_ONLY_ADS_SCOPE = "https://www.googleapis.com/auth/adwords"
 
 if mcp.settings.auth is not None:
+
     def _create_credentials() -> Credentials:
         access_token = get_access_token()
-        assert access_token is not None, "Access token is required but not found in context."
+        assert access_token is not None, (
+            "Access token is required but not found in context."
+        )
         credentials = OAuth2Credentials(
             client_id=google_ads_settings.client_id,
             client_secret=google_ads_settings.client_secret.get_secret_value(),
-            token=access_token.token
+            token=access_token.token,
         )
         return credentials
 
 else:
+
     def _create_credentials() -> Credentials:
         """Returns Application Default Credentials with read-only scope."""
         (credentials, _) = google.auth.default(scopes=[_READ_ONLY_ADS_SCOPE])
         return credentials
-
 
 
 def _get_developer_token() -> str:
@@ -91,8 +94,9 @@ def _get_login_customer_id() -> str | None:
     return google_ads_settings.login_customer_id
 
 
-
-def _get_googleads_client(login_customer_id: str | None = None) -> GoogleAdsClient:
+def _get_googleads_client(
+    login_customer_id: str | None = None,
+) -> GoogleAdsClient:
     # Use this line if you have a google-ads.yaml file
     # client = GoogleAdsClient.load_from_storage()
     # GoogleAdsClient.load_from_storage()
@@ -138,9 +142,9 @@ def get_googleads_service(
     service_name: str,
     login_customer_id: str | None = None,
 ) -> Any:
-    return _get_googleads_client(login_customer_id=login_customer_id).get_service(
-        service_name, interceptors=[MCPHeaderInterceptor()]
-    )
+    return _get_googleads_client(
+        login_customer_id=login_customer_id
+    ).get_service(service_name, interceptors=[MCPHeaderInterceptor()])
 
 
 @overload
@@ -151,12 +155,12 @@ def get_googleads_type(
 
 @overload
 def get_googleads_type(
-    type_name: str
+    type_name: str,
 ) -> "ProtoMessage | GoogleProtobufMessage": ...
 
 
 def get_googleads_type(
-    type_name: str
+    type_name: str,
 ) -> "ProtoMessage | GoogleProtobufMessage":
     return _get_googleads_client().get_type(type_name)
 
