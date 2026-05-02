@@ -14,7 +14,7 @@
 
 """Tools for generating file containing a list of resources and their fields."""
 
-import utils
+from ads_mcp import utils
 
 
 def update_gaql_resource_file():

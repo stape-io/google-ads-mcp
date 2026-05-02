@@ -28,6 +28,7 @@ class MCPHeaderInterceptor(
 
     _API_CLIENT_HEADER = "x-goog-api-client"
 
+    @staticmethod
     def _get_package_version_with_fallback():
         """Returns the version of the package.
 

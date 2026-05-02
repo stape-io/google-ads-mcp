@@ -43,7 +43,7 @@ def send_request(
     process: subprocess.Popen,
     method: str,
     params: Optional[Dict[str, Any]] = None,
-    req_id: Optional[int] = 1,
+    req_id: int = 1,
 ) -> None:
     """Sends a JSON-RPC request or notification to the server."""
     request = {

@@ -72,7 +72,7 @@ def _get_login_customer_id() -> str | None:
 
 
 def _get_googleads_client() -> GoogleAdsClient:
-    args = {
+    args: dict[str, Any] = {
         "credentials": _create_credentials(),
         "developer_token": _get_developer_token(),
         "use_proto_plus": True,
@@ -90,7 +90,7 @@ def _get_googleads_client() -> GoogleAdsClient:
 
 
 def get_googleads_service(serviceName: str) -> GoogleAdsServiceClient:
-    return _get_googleads_client().get_service(
+    return _get_googleads_client().get_service(  # type: ignore[no-any-return]
         serviceName, interceptors=[MCPHeaderInterceptor()]
     )
 

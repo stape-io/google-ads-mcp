@@ -14,7 +14,7 @@
 
 """Tools for exposing simple, core API methods to the MCP server."""
 
-from typing import List
+from typing import List, cast
 from ads_mcp.coordinator import mcp
 from mcp.types import ToolAnnotations
 
@@ -22,6 +22,10 @@ import ads_mcp.utils as utils
 
 from google.ads.googleads.v24.services.types.customer_service import (
     ListAccessibleCustomersResponse,
+)
+
+from google.ads.googleads.v24.services.services.customer_service import (
+    CustomerServiceClient,
 )
 
 
@@ -35,7 +39,9 @@ def list_accessible_customers() -> List[str]:
     Returns:
         List[str]: A list of customer IDs.
     """
-    ga_service = utils.get_googleads_service("CustomerService")
+    ga_service: CustomerServiceClient = cast(
+        CustomerServiceClient, utils.get_googleads_service("CustomerService")
+    )
     accessible_customers: ListAccessibleCustomersResponse = (
         ga_service.list_accessible_customers()
     )

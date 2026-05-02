@@ -27,9 +27,9 @@ def search(
     customer_id: str,
     fields: List[str],
     resource: str,
-    conditions: List[str] = None,
-    orderings: List[str] = None,
-    limit: int | str = None,
+    conditions: List[str] | None = None,
+    orderings: List[str] | None = None,
+    limit: int | str | None = None,
 ) -> List[Dict[str, Any]]:
     """Fetches data from the Google Ads API using the search method
 
@@ -119,7 +119,7 @@ def _search_tool_description() -> str:
     Requests to resource change_event must specify a LIMIT of less than or equal to 10000
 
 ### Hints for conversions questions
-    https://developers.google.com/google-ads/api/docs/conversions/upload-summaries 
+    https://developers.google.com/google-ads/api/docs/conversions/upload-summaries
 
 
 ### Hints for all resources

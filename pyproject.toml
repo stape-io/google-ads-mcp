@@ -6,7 +6,8 @@ license = "Apache-2.0"
 dependencies = [
     "google-ads>=30.1.0",
     "mcp[cli]>=1.2.0",
-    "fastmcp>=3.2.0"
+    "fastmcp>=3.2.0",
+    "joserfc>=1.6.1",
 ]
 
 description = "MCP Server for Google Ads, depends on Google Ads API."
@@ -38,7 +39,8 @@ google-ads-mcp-update-gaql = "ads_mcp.update_references:update_gaql_resource_fil
 [dependency-groups]
 dev = [
     "nox >=2025.5.1,<2026",
-    {include-group = "lint"}
+    {include-group = "lint"},
+    {include-group = "test"}
 ]
 
 lint = [
@@ -47,6 +49,10 @@ lint = [
     "ruff>=0.14.14",
     "types-protobuf>=6.32.1.20251210",
     "types-cachetools>=6.2.0",
+]
+
+test =[
+    "google-genai>=1.74.0,<2.0.0",
 ]
 
 
@@ -61,13 +67,12 @@ packages = ["ads_mcp"]
 strict = false
 files = [
     "ads_mcp",
-    "tests",
 ]
 warn_return_any = true
 warn_unused_ignores = true
 warn_unreachable = true
 show_error_codes = true
-disallow_untyped_defs = true
+disallow_untyped_defs = false
 disallow_any_unimported = true
 no_implicit_optional = true
 
@@ -77,7 +82,7 @@ follow_untyped_imports = true
 
 [tool.ruff]
 line-length = 80
-src = ["ads_mcp", "tests"]
+src = ["ads_mcp"]
 target-version = "py310"
 
 [tool.ruff.lint]

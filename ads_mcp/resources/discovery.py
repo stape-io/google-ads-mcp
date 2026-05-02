@@ -44,4 +44,4 @@ def get_discovery_document() -> str:
         headers={"User-Agent": "Mozilla/5.0"},
     )
     with urllib.request.urlopen(req) as response:
-        return response.read().decode("utf-8")
+        return response.read().decode("utf-8")  # type: ignore[no-any-return]
