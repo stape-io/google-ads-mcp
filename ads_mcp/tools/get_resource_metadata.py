@@ -14,21 +14,21 @@
 
 """Tools for fetching metadata for Google Ads resources."""
 
-from typing import Any, Dict, cast
-from ads_mcp.coordinator import mcp
-from mcp.types import ToolAnnotations
-import ads_mcp.utils as utils
+from typing import Any, cast
 
+import ads_mcp.utils as utils
+from ads_mcp.coordinator import mcp
 from google.ads.googleads.v24.services.services.google_ads_field_service import (
     GoogleAdsFieldServiceClient,
 )
 from google.ads.googleads.v24.services.types.google_ads_field_service import (
     SearchGoogleAdsFieldsRequest,
 )
+from mcp.types import ToolAnnotations
 
 
 @mcp.tool(annotations=ToolAnnotations(readOnlyHint=True))
-def get_resource_metadata(resource_name: str) -> Dict[str, Any]:
+def get_resource_metadata(resource_name: str) -> dict[str, Any]:
     """Retrieves the selectable, filterable, and sortable fields for a specific Google Ads resource,
     including compatible metrics and segments.
 
@@ -114,7 +114,7 @@ def get_resource_metadata(resource_name: str) -> Dict[str, Any]:
 
     return {
         "resource": resource_name,
-        "selectable": sorted(list(selectable)),
-        "filterable": sorted(list(filterable)),
-        "sortable": sorted(list(sortable)),
+        "selectable": sorted(selectable),
+        "filterable": sorted(filterable),
+        "sortable": sorted(sortable),
     }

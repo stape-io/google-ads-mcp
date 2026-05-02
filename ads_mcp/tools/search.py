@@ -14,23 +14,25 @@
 
 """Tools for exposing the API Search method to the MCP server."""
 
-from typing import Any, Dict, List
-from ads_mcp.coordinator import mcp
-from fastmcp.tools import Tool
-from mcp.types import ToolAnnotations
+from typing import Any
+
 import ads_mcp.utils as utils
-from google.ads.googleads.errors import GoogleAdsException
+from ads_mcp.coordinator import mcp
 from fastmcp.exceptions import ToolError
+from fastmcp.tools import Tool
+from google.ads.googleads.errors import GoogleAdsException
+from mcp.types import ToolAnnotations
 
 
 def search(
     customer_id: str,
-    fields: List[str],
+    fields: list[str],
     resource: str,
-    conditions: List[str] | None = None,
-    orderings: List[str] | None = None,
+    conditions: list[str] | None = None,
+    orderings: list[str] | None = None,
     limit: int | str | None = None,
-) -> List[Dict[str, Any]]:
+    login_customer_id: str | None = None,
+) -> list[dict[str, Any]]:
     """Fetches data from the Google Ads API using the search method
 
     Args:
@@ -42,6 +44,8 @@ def search(
         limit: The maximum number of rows to return
 
     """
+    if login_customer_id:
+        utils.set_login_customer_id(login_customer_id)
 
     ga_service = utils.get_googleads_service("GoogleAdsService")
 
@@ -66,7 +70,7 @@ def search(
             customer_id=customer_id, query=query
         )
 
-        final_output: List = []
+        final_output: list[dict[str, Any]] = []
         for batch in query_result:
             for row in batch.results:
                 final_output.append(
@@ -92,7 +96,7 @@ def _search_tool_description() -> str:
     )
 
     try:
-        with open(utils.get_gaql_resources_filepath(), "r") as file:
+        with open(utils.get_gaql_resources_filepath()) as file:
             file_content = file.read()
     except FileNotFoundError:
         utils.logger.error("The specified file was not found.")
