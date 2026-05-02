@@ -41,7 +41,7 @@ google-ads-mcp-update-gaql = "ads_mcp.update_references:update_gaql_resource_fil
 dev = [
     "nox >=2025.5.1,<2026",
     {include-group = "lint"},
-    {include-group = "test"}
+    {include-group = "test"},
 ]
 
 lint = [

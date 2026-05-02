@@ -16,19 +16,21 @@
 
 """Common utilities used by the MCP server."""
 
-from typing import Any
-import proto
+import importlib.resources
 import logging
+import os
+from contextvars import ContextVar
+from typing import Any
+
+import google.auth
+import proto
 from google.ads.googleads.client import GoogleAdsClient
+from google.ads.googleads.util import get_nested_attr
 from google.ads.googleads.v24.services.services.google_ads_service import (
     GoogleAdsServiceClient,
 )
 
-from google.ads.googleads.util import get_nested_attr
-import google.auth
 from ads_mcp.mcp_header_interceptor import MCPHeaderInterceptor
-import os
-import importlib.resources
 
 # filename for generated field information used by search
 _GAQL_FILENAME = "gaql_resources.txt"
@@ -40,6 +42,17 @@ logging.basicConfig(level=logging.INFO)
 # read-only scope; access is restricted to read methods by the tools this
 # server exposes (see ads_mcp/tools/).
 _ADS_SCOPE = "https://www.googleapis.com/auth/adwords"
+
+# Context variable that overrides GOOGLE_ADS_LOGIN_CUSTOMER_ID for the current
+# async context (e.g. per-request in a FastMCP server).
+_login_customer_id_var: ContextVar[str | None] = ContextVar(
+    "login_customer_id", default=None
+)
+
+
+def set_login_customer_id(customer_id: str | None) -> None:
+    """Set the login customer ID for the current context."""
+    _login_customer_id_var.set(customer_id)
 
 
 def _create_credentials() -> google.auth.credentials.Credentials:
@@ -67,7 +80,11 @@ def _get_developer_token() -> str:
 
 
 def _get_login_customer_id() -> str | None:
-    """Returns login customer id, if set, from the environment variable GOOGLE_ADS_LOGIN_CUSTOMER_ID."""
+    """Returns login customer id from the context variable or, as a fallback,
+    from the GOOGLE_ADS_LOGIN_CUSTOMER_ID environment variable."""
+    ctx_value = _login_customer_id_var.get()
+    if ctx_value is not None:
+        return ctx_value
     return os.environ.get("GOOGLE_ADS_LOGIN_CUSTOMER_ID")
 
 
