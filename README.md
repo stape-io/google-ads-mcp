@@ -64,15 +64,22 @@ to enable the following APIs in your Google Cloud project:
 * [Google Ads API](https://console.cloud.google.com/apis/library/googleads.googleapis.com)
 
 ### Configure Credentials
+
+The server reads all configuration from environment variables. An [`example.env`](example.env) file is provided as a reference listing all available settings — copy it to `.env` and fill in your values. You can also point to a different env file by setting `GOOGLE_ADS_MCP_ENV_FILE=/path/to/your.env`.
+
 #### Option 1: Using FastMCP OAuth Proxy
 
 The server supports FastMCP's [OAuth proxy](https://gofastmcp.com/servers/auth/oauth-proxy) feature for dynamic user authentication. This is useful when running the server as a web service.
 
 To enable it, set the following environment variables:
 
+- `GOOGLE_ADS_MCP_AUTH_PROVIDER`: Set to `google` to enable the Google OAuth provider.
 - `GOOGLE_ADS_MCP_OAUTH_CLIENT_ID`: Your Google Cloud OAuth 2.0 Client ID.
 - `GOOGLE_ADS_MCP_OAUTH_CLIENT_SECRET`: Your Google Cloud OAuth 2.0 Client Secret.
-- `GOOGLE_ADS_MCP_BASE_URL`: (Optional) The base URL where the server is accessible (defaults to `http://localhost:8000`).
+- `GOOGLE_ADS_MCP_BASE_URL`: (Optional) The base URL where the server is accessible (defaults to `http://127.0.0.1:8080`).
+- `GOOGLE_ADS_MCP_OAUTH_JWT_SIGNING_KEY`: (Optional) A secret key used to sign JWTs for OAuth flows.
+- `GOOGLE_ADS_MCP_OAUTH_EXTRA_AUTHORIZE_PARAMS`: (Optional) JSON object with extra parameters to pass to the authorization endpoint (e.g., `{"prompt":"consent", "access_type": "offline"}`).
+- `GOOGLE_ADS_MCP_OAUTH_REQUIRE_AUTHORIZATION_CONSENT`: (Optional) Whether to require authorization consent. Defaults to `external`.
 
 Once this is enabled, you can authenticate to the API through your MCP client: for example, in Gemini CLI, the command `/mcp auth google-ads-mcp` triggers the authentication flow.
 
@@ -134,6 +141,54 @@ If you have already done this and have a working `google-ads.yaml` , you can reu
 
 In the utils.py file, change get_googleads_client() to use the load_from_storage() method.
 
+#### Option 4: Using a Remote Authorization Server
+
+If you already have an external OAuth 2.0 authorization server, you can delegate authentication to it using FastMCP's `RemoteAuthProvider`. The server will verify tokens against your authorization server.
+
+Set the following environment variables:
+
+- `GOOGLE_ADS_MCP_AUTH_PROVIDER`: Set to `remote`.
+- `GOOGLE_ADS_MCP_AUTH_SERVER_URL`: The URL of your external authorization server.
+- `GOOGLE_ADS_MCP_BASE_URL`: (Optional) The base URL where the server is accessible (defaults to `http://127.0.0.1:8080`).
+
+Configure how the server verifies tokens against your authorization server (see [Advanced Auth Configuration](#advanced-auth-configuration) below).
+
+### Advanced Auth Configuration
+
+These settings apply to Options 1 and 4 above and allow fine-grained control over authentication behaviour.
+
+#### Auth Storage
+
+When using an OAuth provider, the server needs to persist OAuth client registrations and tokens. **Note:** Storage is required only for the Google provider (Option 1). For the remote provider (Option 4), storage is not needed. Configure the storage backend with `GOOGLE_ADS_MCP_AUTH_STORAGE_TYPE`:
+
+| Value | Description |
+|---|---|
+| `in-memory` | Default. Suitable for single-process deployments; state is lost on restart. |
+| `redis` | Persistent, suitable for multi-process or Cloud Run deployments. Requires `GOOGLE_ADS_MCP_AUTH_STORAGE_REDIS_URL`. |
+| `disk` | Persists to the local filesystem. Optionally, set `GOOGLE_ADS_MCP_AUTH_STORAGE_DISK_DIRECTORY` to specify the directory; defaults to the current working directory. |
+
+Optional encryption at rest: set `GOOGLE_ADS_MCP_AUTH_STORAGE_ENCRYPTION_KEY` to a [Fernet](https://cryptography.io/en/latest/fernet/) key. Strongly recommended for `redis` and `disk` storage in production.
+
+#### Token Verifier
+
+When using the remote auth provider (Option 4), the server must verify bearer tokens by calling an introspection endpoint on your authorization server. Configure with:
+
+- `GOOGLE_ADS_MCP_AUTH_TOKEN_VERIFIER_URL`: Token introspection URL (defaults to `https://www.googleapis.com/oauth2/v1/tokeninfo`).
+- `GOOGLE_ADS_MCP_AUTH_TOKEN_VERIFIER_METHOD`: HTTP method (`GET`, `POST`, etc., defaults to `GET`).
+- `GOOGLE_ADS_MCP_AUTH_TOKEN_VERIFIER_CONTENT_TYPE`: `application/json` or `application/x-www-form-urlencoded` (defaults to `application/json`).
+- `GOOGLE_ADS_MCP_AUTH_TOKEN_VERIFIER_AUTH`: Authentication method for the introspection call — `bearer` or `basic` (leave unset for unauthenticated introspection endpoints).
+  - For `bearer`: set `GOOGLE_ADS_MCP_AUTH_TOKEN_VERIFIER_BEARER_TOKEN` to a static token, **or** configure the [JWT Provider](#jwt-provider) below to generate tokens dynamically.
+  - For `basic`: set `GOOGLE_ADS_MCP_AUTH_TOKEN_VERIFIER_BASIC_AUTH_USERNAME` and `GOOGLE_ADS_MCP_AUTH_TOKEN_VERIFIER_BASIC_AUTH_PASSWORD`.
+
+#### JWT Provider
+
+When `GOOGLE_ADS_MCP_AUTH_TOKEN_VERIFIER_AUTH=bearer` and no static bearer token is configured, the server generates short-lived JWTs to authenticate against the token introspection endpoint. Configure with:
+
+- `GOOGLE_ADS_MCP_AUTH_JWT_PROVIDER_PRIVATE_KEYS`: JSON array of JWK private keys used to sign tokens.
+- `GOOGLE_ADS_MCP_AUTH_JWT_PROVIDER_ALGORITHM`: Signing algorithm (e.g., `RS256`).
+- `GOOGLE_ADS_MCP_AUTH_JWT_PROVIDER_TOKEN_LIFETIME`: Token lifetime in `HH:MM:SS` format (defaults to `00:01:00`).
+- `GOOGLE_ADS_MCP_AUTH_JWT_PROVIDER_CLAIMS`: JSON object of additional claims to include in the JWT (e.g., `{"iss":"example","aud":"my-auth-server"}`).
+
 ### Configure your MCP client
 
 Add the server to your MCP client's configuration. Below are examples for
@@ -161,7 +216,7 @@ popular clients.
           "httpUrl":"http://localhost:8000/mcp",
           "env": {
             "GOOGLE_PROJECT_ID": "YOUR_PROJECT_ID",
-            "GOOGLE_ADS_DEVELOPER_TOKEN": "YOUR_DEVELOPER_TOKEN"                        
+            "GOOGLE_ADS_DEVELOPER_TOKEN": "YOUR_DEVELOPER_TOKEN"
           }
         }
       }
@@ -258,6 +313,20 @@ The final file will look like this:
 
 The `mcpServers` block format is the same across all MCP clients. Add the configuration shown above to the appropriate settings file for your client (e.g., `~/.claude/settings.json` for Claude Code, `.cursor/mcp.json` for Cursor, `.vscode/mcp.json` for VS Code with Copilot).
 
+## Running with Docker
+
+A `docker-compose.yml` is provided for running the server locally in a container. Copy `example.env` to `.env`, fill in your values, then:
+
+```shell
+docker compose up
+```
+
+The server will be available at `http://localhost:8000/mcp`. You can also run it directly with uvicorn:
+
+```shell
+uvicorn server:app --host 0.0.0.0 --port 8000
+```
+
 ## Deployment to Google Cloud Platform
 
 Instead of hosting this MCP server locally, you can host it on Google Cloud Run or on any other cloud-based infrastructure. This is useful if you want to share the server across different agents or run it as a web service.
@@ -292,10 +361,10 @@ Make sure to set the required environment variables:
 
 - `GOOGLE_PROJECT_ID`: Your Google Cloud project ID.
 - `GOOGLE_ADS_DEVELOPER_TOKEN`: The developer token you want the MCP server to use (see above).
+- `GOOGLE_ADS_MCP_AUTH_PROVIDER`: Set to `google` to enable the Google OAuth provider.
 - `GOOGLE_ADS_MCP_OAUTH_CLIENT_ID`: The OAuth Client ID you want the MCP server to use.
 - `GOOGLE_ADS_MCP_OAUTH_CLIENT_SECRET`: The OAuth Client secret you want the MCP server to use.
-- `GOOGLE_ADS_MCP_BASE_URL`: The base URL where your MCP server is accessible: this will be automatically assigned by Google Cloud Run after your first deployment. You can update the environment variables after deployment. 
-- `FASTMCP_HOST`: Set this to `0.0.0.0` to allow FastMCP to accept connections from all IP addresses.
+- `GOOGLE_ADS_MCP_BASE_URL`: The base URL where your MCP server is accessible: this will be automatically assigned by Google Cloud Run after your first deployment. You can update the environment variables after deployment.
 
 ```shell
 gcloud run deploy google-ads-mcp \
@@ -303,7 +372,7 @@ gcloud run deploy google-ads-mcp \
   --platform managed \
   --region us-central1 \
   --allow-unauthenticated \
-  --set-env-vars="GOOGLE_PROJECT_ID=YOUR_PROJECT_ID,GOOGLE_ADS_DEVELOPER_TOKEN=YOUR_DEVELOPER_TOKEN,GOOGLE_ADS_MCP_OAUTH_CLIENT_ID=YOUR_CLIENT_ID,GOOGLE_ADS_MCP_OAUTH_CLIENT_SECRET=YOUR_CLIENT_SECRET,GOOGLE_ADS_MCP_BASE_URL=YOUR_BASE_URL,FASTMCP_HOST=0.0.0.0"
+  --set-env-vars="GOOGLE_PROJECT_ID=YOUR_PROJECT_ID,GOOGLE_ADS_DEVELOPER_TOKEN=YOUR_DEVELOPER_TOKEN,GOOGLE_ADS_MCP_AUTH_PROVIDER=google,GOOGLE_ADS_MCP_OAUTH_CLIENT_ID=YOUR_CLIENT_ID,GOOGLE_ADS_MCP_OAUTH_CLIENT_SECRET=YOUR_CLIENT_SECRET,GOOGLE_ADS_MCP_BASE_URL=YOUR_BASE_URL"
 ```
 
 ### Step 3: Configure MCP Client
@@ -339,7 +408,7 @@ Here are some sample prompts to get you started:
   what customers do I have access to?
   ```
 
-- Ask about campaigns 
+- Ask about campaigns
 
   ```
   How many active campaigns do I have?
@@ -351,7 +420,7 @@ Here are some sample prompts to get you started:
 
 ### Note about Customer ID
 
-Your agent will need and ask for a customer id for most prompts. If you are 
+Your agent will need and ask for a customer id for most prompts. If you are
 moving between multiple customers, including the customer ID in the prompt may
 be simpler.
 
