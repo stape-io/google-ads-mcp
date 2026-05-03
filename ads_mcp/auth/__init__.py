@@ -1,9 +1,11 @@
+import os
 from typing import Literal
 
 import httpx
 
 from .jwt import JWTProvider
 from .settings import (
+    GOOGLE_ADS_MCP_AUTH_PREFIX,
     BasicAuthSettings,
     BearerAuthSettings,
     JwtProviderSettings,
@@ -64,6 +66,11 @@ def get_token_verifier(
 ) -> TokenVerifier:
 
     settings = TokenVerifierSettings()
+    print(f"TokenVerifierSettings: {settings.model_config}")
+    print(f"TokenVerifierSettings: {settings}")
+    for k, v in os.environ.items():
+        if k.startswith(GOOGLE_ADS_MCP_AUTH_PREFIX.upper()):
+            print(f"Environment variable {k}={v}")
     return TokenVerifier(
         auth=_get_token_verifier_auth(settings.auth),
         url=settings.url,

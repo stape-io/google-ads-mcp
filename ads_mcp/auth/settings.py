@@ -18,7 +18,7 @@ def create_settings_config(path: tuple[str, ...]) -> SettingsConfigDict:
     else:
         env_path = GOOGLE_ADS_MCP_AUTH_PREFIX
     return SettingsConfigDict(
-        env_prefix=env_path,
+        env_prefix=env_path + "_",
         env_file=GOOGLE_ADS_MCP_ENV_FILE,
         case_sensitive=False,
         env_file_encoding="utf-8",
