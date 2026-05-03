@@ -1,17 +1,144 @@
+# Hostname used for Kubernetes ingress and certificate resources.
 host: "example.com"
-auth:
-  issuerHost: "auth.example.com"
+
+# Base URL of the MCP server as seen by OAuth clients (e.g. https://example.com).
+# Defaults to https://<host> when left empty.
+baseUrl: ""
+
+# Image configuration
 image:
   repository: "example.com/example"
   name: "app"
   tag: "latest"
+  pullPolicy: Always
 
+# Number of pod replicas
+replicas: 1
+
+# Authentication configuration
+auth:
+  # Auth provider: "google" (default) or "remote".
+  provider: "google"
+
+  # ── Google OAuth provider ────────────────────────────────────────────────
+  # All settings below are used only when auth.provider: "google".
+  google:
+    # Whether to require authorization consent. "external" | true | false.
+    # Omit to use the server default ("external").
+    requireAuthorizationConsent: "external"
+
+    # Extra parameters forwarded to Google's authorization endpoint (JSON string).
+    # Stored in a ConfigMap. E.g. '{"access_type":"offline","prompt":"consent"}'
+    extraAuthorizeParams: ""
+
+    # Set to true to inject GOOGLE_ADS_MCP_OAUTH_JWT_SIGNING_KEY from the Secret
+    # (key: google-oauth-jwt-signing-key). Optional — only needed for custom JWT signing.
+    jwtSigningKeyEnabled: false
+
+    # Storage for OAuth client registrations and tokens.
+    storage:
+      # "in-memory" — default, no external deps. State lost on pod restart.
+      # "redis"     — persistent; requires secret key auth-storage-redis-url.
+      # "disk"      — persistent; stores files on the pod filesystem.
+      type: "in-memory"
+
+      # Filesystem path for disk storage (optional; defaults to working directory).
+      diskDirectory: ""
+
+      # Set to true to inject GOOGLE_ADS_MCP_AUTH_STORAGE_ENCRYPTION_KEY from
+      # the Secret (key: auth-storage-encryption-key).
+      # Strongly recommended for redis and disk storage in production.
+      encryptionKeyEnabled: false
+
+  # ── Remote auth provider ─────────────────────────────────────────────────
+  # All settings below are used only when auth.provider: "remote".
+  # Storage is not required for the remote provider.
+  remote:
+    # URL of the external OAuth 2.0 authorization server.
+    serverUrl: ""
+
+    # Token introspection endpoint — the server calls this to verify bearer tokens.
+    tokenVerifier:
+      url: ""
+      # HTTP method used for introspection calls.
+      method: "GET"
+      # Content-Type sent with introspection calls.
+      contentType: "application/json"
+      # How the server authenticates its introspection request:
+      #   "bearer" — sends a bearer token (static or JWT-generated)
+      #   "basic"  — sends HTTP Basic credentials
+      #   ""       — unauthenticated
+      auth: ""
+      # Set to true to inject GOOGLE_ADS_MCP_AUTH_TOKEN_VERIFIER_BEARER_TOKEN
+      # from the Secret (key: token-verifier-bearer-token).
+      # Only used when auth: "bearer" and jwtProvider.enabled: false.
+      bearerTokenEnabled: false
+
+    # JWT provider: generates short-lived JWTs used as bearer tokens for introspection.
+    # Activated when tokenVerifier.auth: "bearer" and bearerTokenEnabled: false.
+    jwtProvider:
+      enabled: false
+      # Signing algorithm, e.g. "RS256", "Ed25519".
+      algorithm: "RS256"
+      # Token lifetime in HH:MM:SS format.
+      tokenLifetime: "00:01:00"
+      # Additional claims included in every generated JWT (JSON string, stored in
+      # ConfigMap). E.g. '{"iss":"mcp-server","aud":"https://auth.example.com"}'
+      claims: ""
+
+# Optional: Google Ads manager-account customer ID.
+# Sets GOOGLE_ADS_LOGIN_CUSTOMER_ID. Leave empty if not using a manager account.
+loginCustomerId: ""
+
+# Secret configuration.
 secret:
+  # Set to true to let this chart create the Kubernetes Secret from secret.data.
+  # Set to false (recommended for production) to manage the Secret externally;
+  # ensure all required keys listed below are present in the Secret.
   create: false
 
+  # Values written into the Secret when secret.create: true.
+  # Key names in the Secret match the kebab-case form shown in the comments.
+  data:
+    # ── All providers ────────────────────────────────────────────────────────
+    # Secret key: developer-token
+    developerToken: ""
+
+    # ── Google provider (auth.provider: google) ──────────────────────────────
+    # Secret key: google-oauth-client-id
+    googleOauthClientId: ""
+    # Secret key: google-oauth-client-secret
+    googleOauthClientSecret: ""
+    # Secret key: google-oauth-jwt-signing-key  (only when jwtSigningKeyEnabled: true)
+    googleOauthJwtSigningKey: ""
+    # Secret key: auth-storage-redis-url  (only when storage.type: redis)
+    authStorageRedisUrl: ""
+    # Secret key: auth-storage-encryption-key  (only when encryptionKeyEnabled: true)
+    authStorageEncryptionKey: ""
+
+    # ── Remote provider (auth.provider: remote) ──────────────────────────────
+    # Secret key: token-verifier-bearer-token
+    # (only when tokenVerifier.bearerTokenEnabled: true)
+    tokenVerifierBearerToken: ""
+    # Secret key: token-verifier-basic-username
+    # (only when tokenVerifier.auth: basic)
+    tokenVerifierBasicUsername: ""
+    # Secret key: token-verifier-basic-password
+    # (only when tokenVerifier.auth: basic)
+    tokenVerifierBasicPassword: ""
+    # Secret key: jwt-provider-private-keys
+    # JSON array of JWK private keys. (only when jwtProvider.enabled: true)
+    # E.g. '[{"kty":"OKP","crv":"Ed25519","x":"...","d":"...","kid":"..."}]'
+    jwtProviderPrivateKeys: ""
+
+# Resource requests and limits
 resources:
   requests:
     memory: "128Mi"
     cpu: "50m"
   limits:
     memory: "256Mi"
+
+# Topology spread constraints.
+# Set to null to use the default (spread pods across nodes by hostname).
+topologySpreadConstraints: null
