@@ -1,32 +1,55 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}
+  name: {{ include "google-ads-mcp.fullname" . }}
+  labels:
+    {{- include "google-ads-mcp.labels" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.replicas | default 1 }}
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ .Release.Name }}
+      {{- include "google-ads-mcp.selectorLabels" . | nindent 6 }}
   template:
     metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       labels:
-        app.kubernetes.io/name: {{ .Release.Name }}
+        {{- include "google-ads-mcp.labels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
-      serviceAccountName: {{ .Release.Name }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "google-ads-mcp.serviceAccountName" . }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: {{ .Chart.Name }}
-          image: {{ .Values.image.repository }}/{{ .Values.image.name }}:{{ .Values.image.tag }}
-          imagePullPolicy: {{ .Values.image.pullPolicy | default "Always" }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: 8000
+              containerPort: {{ .Values.server.containerPort | default 8000 }}
               protocol: TCP
           env:
             # Google Ads settings
             - name: GOOGLE_ADS_DEVELOPER_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Release.Name }}
+                  name: {{ include "google-ads-mcp.fullname" . }}
                   key: developer-token
             {{- with .Values.loginCustomerId }}
             - name: GOOGLE_ADS_LOGIN_CUSTOMER_ID
@@ -44,12 +67,12 @@ spec:
             - name: GOOGLE_ADS_MCP_OAUTH_CLIENT_ID
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Release.Name }}
+                  name: {{ include "google-ads-mcp.fullname" . }}
                   key: google-oauth-client-id
             - name: GOOGLE_ADS_MCP_OAUTH_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Release.Name }}
+                  name: {{ include "google-ads-mcp.fullname" . }}
                   key: google-oauth-client-secret
             {{- with .Values.auth.google.requireAuthorizationConsent }}
             - name: GOOGLE_ADS_MCP_OAUTH_REQUIRE_AUTHORIZATION_CONSENT
@@ -57,17 +80,17 @@ spec:
             {{- end }}
             {{- with .Values.auth.google.extraAuthorizeParams }}
             - name: GOOGLE_ADS_MCP_OAUTH_EXTRA_AUTHORIZE_PARAMS
-              value: {{ . | quote }}
+              value: {{ . | toJson | quote }}
             {{- end }}
             {{- if .Values.auth.google.jwtSigningKeyEnabled }}
             - name: GOOGLE_ADS_MCP_OAUTH_JWT_SIGNING_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Release.Name }}
+                  name: {{ include "google-ads-mcp.fullname" . }}
                   key: google-oauth-jwt-signing-key
             {{- end }}
-
             # Auth storage
+            {{- if .Values.auth.google.storage.enabled }}
             {{- with .Values.auth.google.storage.type }}
             - name: GOOGLE_ADS_MCP_AUTH_STORAGE_TYPE
               value: {{ . | quote }}
@@ -76,7 +99,7 @@ spec:
             - name: GOOGLE_ADS_MCP_AUTH_STORAGE_REDIS_URL
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Release.Name }}
+                  name: {{ include "google-ads-mcp.fullname" . }}
                   key: auth-storage-redis-url
             {{- end }}
             {{- if and (eq .Values.auth.google.storage.type "disk") .Values.auth.google.storage.diskDirectory }}
@@ -87,15 +110,15 @@ spec:
             - name: GOOGLE_ADS_MCP_AUTH_STORAGE_ENCRYPTION_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Release.Name }}
+                  name: {{ include "google-ads-mcp.fullname" . }}
                   key: auth-storage-encryption-key
+            {{- end }}
             {{- end }}
 
             {{- else if eq .Values.auth.provider "remote" }}
             # Remote auth provider
             - name: GOOGLE_ADS_MCP_AUTH_SERVER_URL
               value: {{ .Values.auth.remote.serverUrl | quote }}
-
             # Token verifier
             - name: GOOGLE_ADS_MCP_AUTH_TOKEN_VERIFIER_URL
               value: {{ .Values.auth.remote.tokenVerifier.url | quote }}
@@ -115,28 +138,27 @@ spec:
             - name: GOOGLE_ADS_MCP_AUTH_TOKEN_VERIFIER_BEARER_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Release.Name }}
+                  name: {{ include "google-ads-mcp.fullname" . }}
                   key: token-verifier-bearer-token
             {{- end }}
             {{- if eq .Values.auth.remote.tokenVerifier.auth "basic" }}
             - name: GOOGLE_ADS_MCP_AUTH_TOKEN_VERIFIER_BASIC_AUTH_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Release.Name }}
+                  name: {{ include "google-ads-mcp.fullname" . }}
                   key: token-verifier-basic-username
             - name: GOOGLE_ADS_MCP_AUTH_TOKEN_VERIFIER_BASIC_AUTH_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Release.Name }}
+                  name: {{ include "google-ads-mcp.fullname" . }}
                   key: token-verifier-basic-password
             {{- end }}
-
             {{- if .Values.auth.remote.jwtProvider.enabled }}
-            # JWT provider for dynamic bearer token generation
+            # JWT provider
             - name: GOOGLE_ADS_MCP_AUTH_JWT_PROVIDER_PRIVATE_KEYS
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Release.Name }}
+                  name: {{ include "google-ads-mcp.fullname" . }}
                   key: jwt-provider-private-keys
             - name: GOOGLE_ADS_MCP_AUTH_JWT_PROVIDER_ALGORITHM
               value: {{ .Values.auth.remote.jwtProvider.algorithm | quote }}
@@ -148,16 +170,23 @@ spec:
             - name: GOOGLE_ADS_MCP_AUTH_JWT_PROVIDER_CLAIMS
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Release.Name }}
+                  name: {{ include "google-ads-mcp.fullname" $ }}
                   key: jwt-provider-claims
             {{- end }}
             {{- end }}
             {{- end }}
-
-          resources:
-            {{- with .Values.resources }}
+          {{- with .Values.livenessProbe }}
+          livenessProbe:
             {{- toYaml . | nindent 12 }}
-            {{- end }}
+          {{- end }}
+          {{- with .Values.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           {{- if or .Values.extraEnvFrom.configMaps .Values.extraEnvFrom.secrets }}
           envFrom:
             {{- range .Values.extraEnvFrom.configMaps }}
@@ -169,6 +198,26 @@ spec:
                 name: {{ . }}
             {{- end }}
           {{- end }}
+          {{- with .Values.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       {{- if .Values.topologySpreadConstraints }}
       topologySpreadConstraints:
         {{- toYaml .Values.topologySpreadConstraints | nindent 8 }}
@@ -179,5 +228,5 @@ spec:
           whenUnsatisfiable: ScheduleAnyway
           labelSelector:
             matchLabels:
-              app.kubernetes.io/name: {{ .Release.Name }}
+              {{- include "google-ads-mcp.selectorLabels" . | nindent 14 }}
       {{- end }}

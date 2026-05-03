@@ -6,12 +6,9 @@ host: "your-domain.com"
 baseUrl: "https://your-domain.com"
 
 image:
-  repository: "us-central1-docker.pkg.dev/your-project-id/mcp-servers"
-  name: "google-ads-mcp"
+  repository: "ghcr.io/stape-io/google-ads-mcp"
   tag: "latest"
   pullPolicy: Always
-
-replicas: 1
 
 auth:
   provider: "remote"
@@ -37,7 +34,7 @@ auth:
       enabled: true
       algorithm: "Ed25519"
       tokenLifetime: "00:01:00"
-      # Additional JWT claims (JSON string, stored in ConfigMap)
+      # Additional JWT claims (JSON string)
       claims: '{"iss":"mcp-server","aud":"https://your-auth-server.com"}'
 
 secret:
@@ -58,4 +55,3 @@ resources:
     cpu: "50m"
   limits:
     memory: "256Mi"
-    cpu: "500m"
