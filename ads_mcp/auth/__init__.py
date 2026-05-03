@@ -1,8 +1,9 @@
-import os
+from pathlib import Path
 from typing import Literal
 
 import httpx
 from fastmcp.server.auth import AuthProvider, RemoteAuthProvider
+from key_value.aio.protocols import AsyncKeyValue
 from pydantic import AnyHttpUrl
 
 from ads_mcp.auth.google_provider import GoogleProvider
@@ -10,6 +11,7 @@ from ads_mcp.auth.google_provider import GoogleProvider
 from .jwt import JWTProvider
 from .settings import (
     GOOGLE_ADS_MCP_REQUIRED_SCOPES,
+    AuthStorageSettings,
     BasicAuthSettings,
     BearerAuthSettings,
     GoogleAdsMCPSettings,
@@ -69,6 +71,38 @@ def _get_token_verifier_auth(
         raise ValueError(f"Unsupported auth type: {type}")
 
 
+def _get_auth_provider_storage() -> AsyncKeyValue | None:
+    settings = AuthStorageSettings()
+    base_store: AsyncKeyValue | None = None
+    if settings.type == "in-memory":
+        from key_value.aio.stores.memory import MemoryStore
+
+        base_store = MemoryStore()
+    elif settings.type == "redis":
+        if not settings.redis_url:
+            raise ValueError("Redis URL must be provided for Redis storage.")
+        from key_value.aio.stores.redis import RedisStore
+
+        base_store = RedisStore(url=str(settings.redis_url))
+    elif settings.type == "disk":
+        from key_value.aio.stores.disk import DiskStore
+
+        directory = settings.disk_directory or Path.cwd()
+        base_store = DiskStore(directory=directory, auto_create=True)
+    else:
+        return None
+
+    if settings.encryption_key:
+        from cryptography.fernet import Fernet
+        from key_value.aio.wrappers.encryption import FernetEncryptionWrapper
+
+        return FernetEncryptionWrapper(
+            key_value=base_store,
+            fernet=Fernet(settings.encryption_key.get_secret_value()),
+        )
+    return base_store
+
+
 def get_token_verifier(
     required_scopes: list[str] | None = None,
 ) -> TokenVerifier:
@@ -90,15 +124,19 @@ def get_google_auth_provider(base_url: str) -> GoogleProvider:
         raise ValueError(
             "GoogleProvider cannot be created without client ID and client secret."
         )
+    client_storage = _get_auth_provider_storage()
     return GoogleProvider(
         client_id=oauth_settings.client_id,
         client_secret=oauth_settings.client_secret.get_secret_value(),
         base_url=base_url,
         required_scopes=GOOGLE_ADS_MCP_REQUIRED_SCOPES,
+        client_storage=client_storage,
     )
 
 
-def get_remote_auth_provider(base_url: str, auth_server_url: AnyHttpUrl | str) -> RemoteAuthProvider:
+def get_remote_auth_provider(
+    base_url: str, auth_server_url: AnyHttpUrl | str
+) -> RemoteAuthProvider:
     return RemoteAuthProvider(
         token_verifier=get_token_verifier(),
         authorization_servers=[AnyHttpUrl(auth_server_url)],
@@ -107,13 +145,17 @@ def get_remote_auth_provider(base_url: str, auth_server_url: AnyHttpUrl | str) -
     )
 
 
-def get_mcp_auth_provider() -> AuthProvider | None:
+def get_auth_provider() -> AuthProvider | None:
     settings = GoogleAdsMCPSettings()
     if settings.auth_provider == "google":
         return get_google_auth_provider(settings.base_url)
     elif settings.auth_provider == "remote":
         if settings.auth_server_url is None:
-            raise ValueError("Remote auth provider requires auth_server_url to be set.")
-        return get_remote_auth_provider(settings.base_url, settings.auth_server_url)
+            raise ValueError(
+                "Remote auth provider requires auth_server_url to be set."
+            )
+        return get_remote_auth_provider(
+            settings.base_url, settings.auth_server_url
+        )
     elif settings.auth_provider == "none":
         return None

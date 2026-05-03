@@ -2,7 +2,7 @@ import datetime as dt
 import os
 from typing import Any, Literal
 
-from pydantic import AnyHttpUrl, Field, SecretStr
+from pydantic import AnyHttpUrl, Field, RedisDsn, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 GOOGLE_ADS_MCP_REQUIRED_SCOPES = [
@@ -54,6 +54,15 @@ class JwtProviderSettings(BaseSettings):
     algorithm: str | None = None
     token_lifetime: dt.timedelta = dt.timedelta(minutes=1)
     claims: dict[str, Any] = Field(default_factory=dict)
+
+
+class AuthStorageSettings(BaseSettings):
+    model_config = create_settings_config(("auth", "storage"))
+
+    type: Literal["in-memory", "redis", "disk"] | None = None
+    redis_url: RedisDsn | None = None
+    encryption_key: SecretStr | None = None
+    disk_directory: str | None = None
 
 
 class TokenVerifierSettings(BaseSettings):
