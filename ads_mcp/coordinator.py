@@ -28,8 +28,8 @@ from ads_mcp.auth import get_token_verifier
 
 _CLIENT_ID = os.environ.get("GOOGLE_ADS_MCP_OAUTH_CLIENT_ID")
 _CLIENT_SECRET = os.environ.get("GOOGLE_ADS_MCP_OAUTH_CLIENT_SECRET")
-_REMOTE_AUTH = (
-    os.environ.get("GOOGLE_ADS_MCP_REMOTE_AUTH", "false").lower() == "true"
+_REMOTE_AUTH_ENABLED = (
+    os.environ.get("GOOGLE_ADS_MCP_AUTH", "").lower() == "remote"
 )
 _BASE_URL = os.environ.get("GOOGLE_ADS_MCP_BASE_URL", "http://localhost:8080")
 
@@ -40,7 +40,7 @@ SCOPES = [
     "https://www.googleapis.com/auth/adwords",
 ]
 
-if _REMOTE_AUTH:
+if _REMOTE_AUTH_ENABLED:
     token_verifier = get_token_verifier(
         required_scopes=SCOPES,
     )
