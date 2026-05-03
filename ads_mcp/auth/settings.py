@@ -13,12 +13,14 @@ GOOGLE_ADS_MCP_ENV_FILE = os.environ.get(f"{GOOGLE_ADS_MCP_PREFIX.upper()}_ENV_F
 
 def create_settings_config(path: tuple[str, ...]) -> SettingsConfigDict:
     if path:
-        env_path = f"{GOOGLE_ADS_MCP_AUTH_PREFIX}_{'_'.join(path)}"
+        env_path = "_".join(part.lower() for part in path)
+        env_path = f"{GOOGLE_ADS_MCP_AUTH_PREFIX}_{env_path}"
     else:
         env_path = GOOGLE_ADS_MCP_AUTH_PREFIX
     return SettingsConfigDict(
         env_prefix=env_path,
         env_file=GOOGLE_ADS_MCP_ENV_FILE,
+        case_sensitive=False,
         env_file_encoding="utf-8",
         extra="ignore",
     )
