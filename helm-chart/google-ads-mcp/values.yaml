@@ -7,7 +7,7 @@ replicaCount: 1
 
 # This sets the container image more information can be found here: https://kubernetes.io/docs/concepts/containers/images/
 image:
-  repository: nginx
+  repository: ghcr.io/stape-io/google-ads-mcp
   # This sets the pull policy for images.
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
@@ -126,11 +126,11 @@ resources: {}
 # This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
 livenessProbe:
   httpGet:
-    path: /
+    path: /healthz
     port: http
 readinessProbe:
   httpGet:
-    path: /
+    path: /healthz
     port: http
 
 # This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
@@ -159,3 +159,118 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+# Topology spread constraints for pod scheduling.
+# If null, a default spread-by-hostname constraint is applied.
+topologySpreadConstraints: null
+
+# ---------------------------------------------------------------------------
+# Google Ads MCP configuration
+# ---------------------------------------------------------------------------
+
+# Publicly accessible hostname (used to construct baseUrl when baseUrl is empty)
+host: "example.com"
+
+# Override the full base URL. Defaults to https://<host>
+baseUrl: ""
+
+# Google Ads manager account (MCC) customer ID. Leave empty to omit.
+loginCustomerId: ""
+
+# MCP server container port (the application listens on this port)
+server:
+  containerPort: 8000
+
+auth:
+  # Auth provider: "google" or "remote"
+  provider: "google"
+
+  google:
+    # Consent screen requirement: "external" or boolean.
+    requireAuthorizationConsent: "external"
+    # Extra parameters forwarded to the authorization endpoint object (key-value pairs). E.g. {"access_type":"offline","prompt":"consent"}
+    extraAuthorizeParams:
+      # access_type: offline
+      # prompt: consent
+    # Enable custom JWT signing key (stored in secret)
+    jwtSigningKeyEnabled: false
+    storage:
+      enabled: false
+      # Storage backend for OAuth tokens: "in-memory", "redis", or "disk"
+      type: "in-memory"
+      # Directory path when type is "disk"
+      diskDirectory: ""
+      # Enable encryption key for token storage (stored in secret)
+      encryptionKeyEnabled: false
+
+  remote:
+    # URL of the remote auth server
+    serverUrl: ""
+    tokenVerifier:
+      # URL to call for token verification
+      url: ""
+      # HTTP method for token verification request
+      method: "POST"
+      # Content-Type for token verification request
+      contentType: "application/json"
+      # Auth method for verifier: "none", "bearer", or "basic"
+      auth: "none"
+      # Enable bearer token secret (requires auth: bearer)
+      bearerTokenEnabled: false
+    jwtProvider:
+      # Enable JWT provider (issues JWTs to authenticated users)
+      enabled: false
+      # JWT signing algorithm
+      algorithm: "RS256"
+      # JWT token lifetime in seconds
+      tokenLifetime: 3600
+      # JWT claims JSON string (stored in secret when non-empty)
+      claims: ""
+
+secret:
+  # Set to true to create the Secret from values below.
+  # Set to false if you manage the Secret externally.
+  create: false
+  data:
+    # Google Ads developer token
+    developerToken: ""
+    # Google OAuth client ID
+    googleOauthClientId: ""
+    # Google OAuth client secret
+    googleOauthClientSecret: ""
+    # Custom JWT signing key (requires auth.google.jwtSigningKeyEnabled: true)
+    googleOauthJwtSigningKey: ""
+    # Redis URL for token storage (requires auth.google.storage.type: redis)
+    authStorageRedisUrl: ""
+    # Encryption key for token storage (requires auth.google.storage.encryptionKeyEnabled: true)
+    authStorageEncryptionKey: ""
+    # Bearer token for remote token verifier
+    tokenVerifierBearerToken: ""
+    # Basic auth credentials for remote token verifier
+    tokenVerifierBasicUsername: ""
+    tokenVerifierBasicPassword: ""
+    # Private keys for JWT provider (PEM format, JSON-encoded array)
+    jwtProviderPrivateKeys: ""
+
+extraEnvFrom:
+  # Names of ConfigMaps to inject as environment variables
+  configMaps: []
+  # Names of Secrets to inject as environment variables
+  secrets: []
+
+# cert-manager Certificate resource
+certificate:
+  enabled: false
+  issuerRef:
+    name: letsencrypt
+    kind: ClusterIssuer
+
+# Traefik IngressRoute resource
+ingressRoute:
+  enabled: false
+  annotations: {}
+  entryPoints:
+    - websecure
+  priority: 10
+  # Port on the Service to route traffic to. Defaults to service.port.
+  servicePort: ""

@@ -1,0 +1,17 @@
+# Development overrides — combine with values-google.yaml or values-remote.yaml.
+# Example:
+#   helm upgrade --install google-ads-mcp ./helm-chart/google-ads-mcp \
+#     -f values-google.yaml -f values-dev.yaml
+
+# No TLS certificate or IngressRoute in dev — use kubectl port-forward instead
+certificate:
+  enabled: false
+
+ingressRoute:
+  enabled: false
+
+secret:
+  create: true  # Create the Secret from values for convenience in dev
+
+image:
+  pullPolicy: IfNotPresent
