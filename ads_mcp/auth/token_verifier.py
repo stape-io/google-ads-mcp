@@ -5,8 +5,8 @@ from collections.abc import Callable
 from typing import Any, Final, Literal
 
 import httpx
-from mcp.server.auth.provider import AccessToken
-from mcp.server.auth.provider import TokenVerifier as _SDKTokenVerifier
+from fastmcp.server.auth import AccessToken
+from fastmcp.server.auth import TokenVerifier as _SDKTokenVerifier
 from pydantic import BaseModel
 
 HTTP_TIMEOUT_SECONDS: Final[float] = 5.0
@@ -29,7 +29,7 @@ class TokenVerifier(_SDKTokenVerifier):
     url: str
     method: Literal["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
     auth: httpx.Auth | None = None
-    required_scopes: set[str]
+    required_scopes: list[str]
     content_type: Literal[
         "application/json", "application/x-www-form-urlencoded"
     ]
@@ -51,7 +51,7 @@ class TokenVerifier(_SDKTokenVerifier):
         self.url = url
         self.method = method
         self.auth = auth
-        self.required_scopes = set(required_scopes or [])
+        self.required_scopes = required_scopes or []
         self.content_type = content_type or "application/json"
 
     def _to_request_kwargs(self, request_data: BaseModel) -> dict[str, Any]:

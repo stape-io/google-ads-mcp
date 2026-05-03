@@ -1,16 +1,24 @@
 
 import datetime as dt
+import os
 from typing import Any, Literal
 
 from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+GOOGLE_ADS_MCP_PREFIX = "google_ads_mcp"
+GOOGLE_ADS_MCP_AUTH_PREFIX = "google_ads_mcp_auth"
+
+GOOGLE_ADS_MCP_ENV_FILE = os.environ.get(f"{GOOGLE_ADS_MCP_PREFIX.upper()}_ENV_FILE", ".env")
 
 def create_settings_config(path: tuple[str, ...]) -> SettingsConfigDict:
-    env_path = "_".join(path).lower() + "_"
+    if path:
+        env_path = f"{GOOGLE_ADS_MCP_AUTH_PREFIX}_{'_'.join(path)}"
+    else:
+        env_path = GOOGLE_ADS_MCP_AUTH_PREFIX
     return SettingsConfigDict(
         env_prefix=env_path,
-        env_file=".env",
+        env_file=GOOGLE_ADS_MCP_ENV_FILE,
         env_file_encoding="utf-8",
         extra="ignore",
     )

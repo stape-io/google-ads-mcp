@@ -20,25 +20,37 @@ of the server.
 """
 
 import os
+
 from fastmcp import FastMCP
 from fastmcp.server.auth.providers.google import GoogleProvider
 
+from ads_mcp.auth import get_token_verifier
+
 _CLIENT_ID = os.environ.get("GOOGLE_ADS_MCP_OAUTH_CLIENT_ID")
 _CLIENT_SECRET = os.environ.get("GOOGLE_ADS_MCP_OAUTH_CLIENT_SECRET")
+_REMOTE_AUTH = (
+    os.environ.get("GOOGLE_ADS_MCP_REMOTE_AUTH", "false").lower() == "true"
+)
 _BASE_URL = os.environ.get("GOOGLE_ADS_MCP_BASE_URL", "http://localhost:8080")
 
-if _CLIENT_ID and _CLIENT_SECRET:
+SCOPES = [
+    "openid",
+    "https://www.googleapis.com/auth/userinfo.email",
+    "https://www.googleapis.com/auth/userinfo.profile",
+    "https://www.googleapis.com/auth/adwords",
+]
+
+if _REMOTE_AUTH:
+    token_verifier = get_token_verifier(
+        required_scopes=SCOPES,
+    )
+    mcp = FastMCP("Google Ads Server", token_verifier=token_verifier)
+elif _CLIENT_ID and _CLIENT_SECRET:
     auth = GoogleProvider(
         client_id=_CLIENT_ID,
         client_secret=_CLIENT_SECRET,
         base_url=_BASE_URL,
-        required_scopes=[
-            "openid",
-            "https://www.googleapis.com/auth/userinfo.email",
-            "https://www.googleapis.com/auth/userinfo.profile",
-            "https://www.googleapis.com/auth/adwords",
-        ],
+        required_scopes=SCOPES,
     )
-    mcp = FastMCP("Google Ads Server", auth=auth)
 else:
     mcp = FastMCP("Google Ads Server")
