@@ -1,22 +1,20 @@
-# Use a slim Python image
-FROM python:3.11-slim
+FROM python:3.14-alpine
 
-# Install uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-# Set the working directory in the container
+ENV UV_COMPILE_BYTECODE=1
+ENV UV_NO_DEV=1
+
 WORKDIR /app
 
-# Copy the project files into the container
+COPY pyproject.toml uv.lock ./
+
+RUN uv sync --all-extras --no-dev --no-install-project
+
 COPY . .
 
-# Install the project and its dependencies
-# We use --system to install into the system Python environment in the container
-RUN uv pip install --system .
+RUN uv sync --all-extras --no-dev
 
-# Expose port 8080 (default for Cloud Run)
-EXPOSE 8080
+EXPOSE 8000
 
-# Define the command to run the server
-# This uses the entry point defined in pyproject.toml
-CMD ["google-ads-mcp"]
+CMD ["uv", "run", "uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8000"]
