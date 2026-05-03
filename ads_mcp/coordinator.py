@@ -22,16 +22,16 @@ of the server.
 import os
 
 from fastmcp import FastMCP
+from fastmcp.server.auth import RemoteAuthProvider
 from fastmcp.server.auth.providers.google import GoogleProvider
+from pydantic import AnyHttpUrl
 
 from ads_mcp.auth import get_token_verifier
 
 _CLIENT_ID = os.environ.get("GOOGLE_ADS_MCP_OAUTH_CLIENT_ID")
 _CLIENT_SECRET = os.environ.get("GOOGLE_ADS_MCP_OAUTH_CLIENT_SECRET")
-_REMOTE_AUTH_ENABLED = (
-    os.environ.get("GOOGLE_ADS_MCP_AUTH", "").lower() == "remote"
-)
 _BASE_URL = os.environ.get("GOOGLE_ADS_MCP_BASE_URL", "http://localhost:8080")
+_REMOTE_AUTH_SERVER_URL = os.environ.get("GOOGLE_ADS_MCP_AUTH_SERVER_URL")
 
 SCOPES = [
     "openid",
@@ -40,11 +40,17 @@ SCOPES = [
     "https://www.googleapis.com/auth/adwords",
 ]
 
-if _REMOTE_AUTH_ENABLED:
+if _REMOTE_AUTH_SERVER_URL:
+    print("Using remote auth provider with server URL:", _REMOTE_AUTH_SERVER_URL)
     token_verifier = get_token_verifier(
         required_scopes=SCOPES,
     )
-    mcp = FastMCP("Google Ads Server", token_verifier=token_verifier)
+    remote_auth = RemoteAuthProvider(
+        token_verifier=token_verifier,
+        authorization_servers=[AnyHttpUrl(_REMOTE_AUTH_SERVER_URL)],
+        base_url=_BASE_URL,
+    )
+    mcp = FastMCP("Google Ads Server", auth=remote_auth)
 elif _CLIENT_ID and _CLIENT_SECRET:
     auth = GoogleProvider(
         client_id=_CLIENT_ID,
