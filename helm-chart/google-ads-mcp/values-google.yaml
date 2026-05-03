@@ -15,10 +15,11 @@ auth:
 
   google:
     requireAuthorizationConsent: "external"
-    # Extra parameters forwarded to the authorization endpoint (URL-encoded string)
-    extraAuthorizeParams: "access_type=offline"
+    # Extra parameters forwarded to the authorization endpoint
+    extraAuthorizeParams:
+      access_type: offline
     # Set to true to load the signing key from the Secret
-    jwtSigningKeyEnabled: false
+    jwtSigningKeyEnabled: true
 
     storage:
       enabled: true
@@ -33,10 +34,8 @@ secret:
     developerToken: "your-developer-token"
     googleOauthClientId: "your-client-id.apps.googleusercontent.com"
     googleOauthClientSecret: "your-client-secret"
-    # Optional — only needed when auth.google.jwtSigningKeyEnabled: true
-    # googleOauthJwtSigningKey: "your-jwt-signing-key"
+    googleOauthJwtSigningKey: "your-jwt-signing-key"
     authStorageRedisUrl: "redis://redis-service:6379/0"
-    # Required when auth.google.storage.encryptionKeyEnabled: true
     authStorageEncryptionKey: "your-fernet-key-here"
 
 resources:

@@ -170,7 +170,7 @@ spec:
             - name: GOOGLE_ADS_MCP_AUTH_JWT_PROVIDER_CLAIMS
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "google-ads-mcp.fullname" . }}
+                  name: {{ include "google-ads-mcp.fullname" $ }}
                   key: jwt-provider-claims
             {{- end }}
             {{- end }}

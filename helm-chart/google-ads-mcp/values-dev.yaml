@@ -5,10 +5,15 @@
 
 # No TLS certificate or IngressRoute in dev — use kubectl port-forward instead
 certificate:
-  enabled: false
+  enabled: true
+  issuerRef:
+    name: cloudflare
+    kind: ClusterIssuer
+
 
 ingressRoute:
-  enabled: false
+  enabled: true
+
 
 secret:
   create: true  # Create the Secret from values for convenience in dev

@@ -7,7 +7,7 @@
 certificate:
   enabled: true
   issuerRef:
-    name: letsencrypt-prod
+    name: cloudflare
     kind: ClusterIssuer
 
 # Enable Traefik IngressRoute
