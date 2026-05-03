@@ -158,6 +158,17 @@ spec:
             {{- with .Values.resources }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
+          {{- if or .Values.extraEnvFrom.configMaps .Values.extraEnvFrom.secrets }}
+          envFrom:
+            {{- range .Values.extraEnvFrom.configMaps }}
+            - configMapRef:
+                name: {{ . }}
+            {{- end }}
+            {{- range .Values.extraEnvFrom.secrets }}
+            - secretRef:
+                name: {{ . }}
+            {{- end }}
+          {{- end }}
       {{- if .Values.topologySpreadConstraints }}
       topologySpreadConstraints:
         {{- toYaml .Values.topologySpreadConstraints | nindent 8 }}

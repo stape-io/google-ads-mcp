@@ -139,6 +139,18 @@ resources:
   limits:
     memory: "256Mi"
 
+# Inject all keys from additional ConfigMaps and/or Secrets as environment
+# variables via envFrom. Useful for passing arbitrary configuration without
+# listing individual keys.
+# extraEnvFrom:
+#   configMaps:
+#     - my-extra-config
+#   secrets:
+#     - my-extra-secret
+extraEnvFrom:
+  configMaps: []
+  secrets: []
+
 # Topology spread constraints.
 # Set to null to use the default (spread pods across nodes by hostname).
 topologySpreadConstraints: null
