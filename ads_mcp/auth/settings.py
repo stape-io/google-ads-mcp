@@ -1,22 +1,30 @@
-
 import datetime as dt
 import os
 from typing import Any, Literal
 
-from pydantic import Field, SecretStr
+from pydantic import AnyHttpUrl, Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-GOOGLE_ADS_MCP_PREFIX = "google_ads_mcp"
-GOOGLE_ADS_MCP_AUTH_PREFIX = "google_ads_mcp_auth"
+GOOGLE_ADS_MCP_REQUIRED_SCOPES = [
+    "openid",
+    "https://www.googleapis.com/auth/userinfo.email",
+    "https://www.googleapis.com/auth/userinfo.profile",
+    "https://www.googleapis.com/auth/adwords",
+]
 
-GOOGLE_ADS_MCP_ENV_FILE = os.environ.get(f"{GOOGLE_ADS_MCP_PREFIX.upper()}_ENV_FILE", ".env")
+GOOGLE_ADS_MCP_PREFIX = "google_ads_mcp"
+
+GOOGLE_ADS_MCP_ENV_FILE = os.environ.get(
+    f"{GOOGLE_ADS_MCP_PREFIX.upper()}_ENV_FILE", ".env"
+)
+
 
 def create_settings_config(path: tuple[str, ...]) -> SettingsConfigDict:
     if path:
         env_path = "_".join(part.lower() for part in path)
-        env_path = f"{GOOGLE_ADS_MCP_AUTH_PREFIX}_{env_path}"
+        env_path = f"{GOOGLE_ADS_MCP_PREFIX}_{env_path}"
     else:
-        env_path = GOOGLE_ADS_MCP_AUTH_PREFIX
+        env_path = GOOGLE_ADS_MCP_PREFIX
     return SettingsConfigDict(
         env_prefix=env_path + "_",
         env_file=GOOGLE_ADS_MCP_ENV_FILE,
@@ -27,20 +35,20 @@ def create_settings_config(path: tuple[str, ...]) -> SettingsConfigDict:
 
 
 class BasicAuthSettings(BaseSettings):
-    model_config = create_settings_config(("basic", "auth"))
+    model_config = create_settings_config(("auth", "basic"))
 
     username: str
     password: SecretStr
 
 
 class BearerAuthSettings(BaseSettings):
-    model_config = create_settings_config(("bearer", "auth"))
+    model_config = create_settings_config(("auth", "bearer"))
 
     token: SecretStr | None = None
 
 
 class JwtProviderSettings(BaseSettings):
-    model_config = create_settings_config(("jwt", "provider"))
+    model_config = create_settings_config(("auth", "jwt", "provider"))
 
     private_keys: list[dict[str, Any]]
     algorithm: str | None = None
@@ -49,7 +57,7 @@ class JwtProviderSettings(BaseSettings):
 
 
 class TokenVerifierSettings(BaseSettings):
-    model_config = create_settings_config(("token", "verifier"))
+    model_config = create_settings_config(("auth", "token", "verifier"))
 
     url: str = "https://www.googleapis.com/oauth2/v1/tokeninfo"
     auth: Literal["bearer", "basic", "none"] = "none"
@@ -57,3 +65,17 @@ class TokenVerifierSettings(BaseSettings):
     content_type: Literal[
         "application/json", "application/x-www-form-urlencoded"
     ] = "application/json"
+
+
+class OAuthSettings(BaseSettings):
+    model_config = create_settings_config(("oauth",))
+
+    client_id: str
+    client_secret: SecretStr
+
+
+class GoogleAdsMCPSettings(BaseSettings):
+    model_config = create_settings_config(())
+    base_url: str = "http://127.0.0.1:8080"
+    auth_provider: Literal["google", "remote", "none"] = "none"
+    auth_server_url: AnyHttpUrl | None = None
