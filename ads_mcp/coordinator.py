@@ -24,4 +24,4 @@ from fastmcp import FastMCP
 from ads_mcp.auth import get_auth_provider
 
 auth_provider = get_auth_provider()
-mcp = FastMCP("Google Ads Server", auth_provider=auth_provider)
+mcp = FastMCP("Google Ads Server", auth=auth_provider)
