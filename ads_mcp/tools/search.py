@@ -29,7 +29,7 @@ def search(
     resource: str,
     conditions: List[str] = None,
     orderings: List[str] = None,
-    limit: int | str = None,
+    limit: int = None,
 ) -> List[Dict[str, Any]]:
     """Fetches data from the Google Ads API using the search method
 
