@@ -193,7 +193,6 @@ auth:
       # access_type: offline
       # prompt: consent
     # Enable custom JWT signing key (stored in secret) - strongly recommended for production deployments
-    # this jwt 
     jwtSigningKeyEnabled: false
     storage:
       enabled: false
@@ -240,10 +239,12 @@ secret:
     # Google OAuth client secret
     googleOauthClientSecret: ""
     # Custom JWT signing key (requires auth.google.jwtSigningKeyEnabled: true)
+    # Must be a base64 random bytes string (e.g. 64 bytes: openssl rand -base64 64)
     googleOauthJwtSigningKey: ""
     # Redis URL for token storage (requires auth.google.storage.type: redis)
     authStorageRedisUrl: ""
     # Encryption key for token storage (requires auth.google.storage.encryptionKeyEnabled: true)
+    # Must be a base64 random bytes string (e.g. 32 bytes for Fernet: openssl rand -base64 32)
     authStorageEncryptionKey: ""
     # Bearer token for remote token verifier
     tokenVerifierBearerToken: ""

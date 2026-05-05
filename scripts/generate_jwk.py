@@ -1,9 +1,26 @@
 #!/usr/bin/env python3
 """Generate an Ed25519 JWK key pair using joserfc.
 
+The generated private key is used for GOOGLE_ADS_MCP_AUTH_JWT_PROVIDER_PRIVATE_KEYS
+(auth.remote.jwtProvider.enabled: true). The server uses the private key to sign
+short-lived JWTs that authenticate outbound token-verification requests.
+
+The key format is OKP (Octet Key Pair) as defined in RFC 8037:
+  - kty: "OKP"  — key type
+  - crv: "Ed25519" — elliptic curve
+  - x   — public key (base64url-encoded 32 bytes)
+  - d   — private key scalar (base64url-encoded 32 bytes, keep secret)
+  - kid — key ID, used to select the correct key during JWT verification
+
+Multiple keys can be listed in the array to support key rotation:
+  GOOGLE_ADS_MCP_AUTH_JWT_PROVIDER_PRIVATE_KEYS='[{...key1...},{...key2...}]'
+
+Output files:
+  <kid>_private.json — full JWK including private scalar (d), never share
+  <kid>_public.json  — public JWK only, safe to share with the auth server
+
 Usage:
-    pip install joserfc
-    python scripts/generate_jwk.py
+    uv run scripts/generate_jwk.py
 """
 
 import json
@@ -44,3 +61,4 @@ if __name__ == "__main__":
         parameters={"use": "sig",}
     )
     save_key_to_file(key)
+    print(f"Generated key with kid: {key.kid}")

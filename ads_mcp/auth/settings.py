@@ -10,6 +10,7 @@ from pydantic import (
     SecretBytes,
     SecretStr,
     field_validator,
+    model_validator,
 )
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -56,8 +57,32 @@ class GoogleAdsMCPAuthStorageSettings(BaseSettings):
 
     type: Literal["in-memory", "redis", "disk"] | None = None
     redis_url: RedisDsn | None = None
-    encryption_key: SecretStr | None = None
+    encryption_key: SecretBytes | None = None
     disk_directory: str | None = None
+
+
+    @model_validator(mode="after")
+    def validate_modeled_fields(self) -> "GoogleAdsMCPAuthStorageSettings":
+        if self.type == "redis" and not self.redis_url:
+            raise ValueError("redis_url must be set when type is 'redis'")
+        return self
+
+
+    @field_validator("encryption_key", mode="before")
+    @classmethod
+    def get_encryption_key(cls, v: Any) -> SecretBytes | None:
+        if v is None:
+            return None
+        if isinstance(v, SecretStr):
+            v = v.get_secret_value()
+        if isinstance(v, str):
+            v = base64.urlsafe_b64decode(v)
+        if isinstance(v, bytes):
+            return SecretBytes(v)
+        if isinstance(v, SecretBytes):
+            return v
+        return None
+
 
 
 class GoogleAdsMCPTokenVerifierSettings(BaseSettings):
