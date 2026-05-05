@@ -189,7 +189,7 @@ auth:
     # Consent screen requirement: "external" or boolean.
     requireAuthorizationConsent: "external"
     # Extra parameters forwarded to the authorization endpoint object (key-value pairs). E.g. {"access_type":"offline","prompt":"consent"}
-    extraAuthorizeParams:
+    extraAuthorizeParams: null
       # access_type: offline
       # prompt: consent
     # Enable custom JWT signing key (stored in secret)
@@ -249,7 +249,7 @@ secret:
     # Basic auth credentials for remote token verifier
     tokenVerifierBasicUsername: ""
     tokenVerifierBasicPassword: ""
-    # Private keys for JWT provider (PEM format, JSON-encoded array)
+    # Private keys for JWT provider (JWK format as per RFC7517, JSON-encoded array, more info: https://tools.ietf.org/html/rfc7517#section-4)
     jwtProviderPrivateKeys: ""
 
 extraEnvFrom:
