@@ -192,7 +192,8 @@ auth:
     extraAuthorizeParams: null
       # access_type: offline
       # prompt: consent
-    # Enable custom JWT signing key (stored in secret)
+    # Enable custom JWT signing key (stored in secret) - strongly recommended for production deployments
+    # this jwt 
     jwtSigningKeyEnabled: false
     storage:
       enabled: false

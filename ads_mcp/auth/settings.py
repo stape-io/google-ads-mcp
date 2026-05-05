@@ -1,8 +1,16 @@
+import base64
 import datetime as dt
 import os
 from typing import Any, Literal
 
-from pydantic import AnyHttpUrl, Field, RedisDsn, SecretStr
+from pydantic import (
+    AnyHttpUrl,
+    Field,
+    RedisDsn,
+    SecretBytes,
+    SecretStr,
+    field_validator,
+)
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 GOOGLE_ADS_MCP_REQUIRED_SCOPES = [
@@ -75,8 +83,22 @@ class GoogleAdsMCPOAuthSettings(BaseSettings):
     client_secret: SecretStr
     extra_authorize_params: dict[str, Any] | None = None
     require_authorization_consent: bool | Literal["external"] = "external"
-    jwt_signing_key: SecretStr | None = None
+    jwt_signing_key: SecretBytes | None = None
 
+    @field_validator("jwt_signing_key", mode="before")
+    @classmethod
+    def get_jwt_signing_key(cls, v: Any) -> SecretBytes | None:
+        if v is None:
+            return None
+        if isinstance(v, SecretStr):
+            v = v.get_secret_value()
+        if isinstance(v, str):
+            v = base64.urlsafe_b64decode(v)
+        if isinstance(v, bytes):
+            return SecretBytes(v)
+        if isinstance(v, SecretBytes):
+            return v
+        return None
 
 
 class GoogleAdsMCPSettings(BaseSettings):
