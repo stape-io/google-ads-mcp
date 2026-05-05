@@ -5,7 +5,7 @@ from ads_mcp.server import (
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
-app = mcp.http_app()
+app = mcp.http_app(stateless_http=True)
 
 
 def healthz(_: Request) -> Response:
