@@ -16,7 +16,7 @@ ingressRoute:
 
 
 secret:
-  create: true  # Create the Secret from values for convenience in dev
+  create: false  # Manage the Secret externally
 
 image:
   pullPolicy: IfNotPresent
