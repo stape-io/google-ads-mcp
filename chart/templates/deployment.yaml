@@ -49,7 +49,7 @@ spec:
             - name: GOOGLE_ADS_DEVELOPER_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "google-ads-mcp.fullname" . }}
+                  name: {{ .Values.secret.name | default (include "google-ads-mcp.fullname" .) }}
                   key: GOOGLE_ADS_DEVELOPER_TOKEN
             {{- with .Values.loginCustomerId }}
             - name: GOOGLE_ADS_LOGIN_CUSTOMER_ID
@@ -67,12 +67,12 @@ spec:
             - name: GOOGLE_ADS_MCP_OAUTH_CLIENT_ID
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "google-ads-mcp.fullname" . }}
+                  name: {{ .Values.secret.name | default (include "google-ads-mcp.fullname" .) }}
                   key: GOOGLE_ADS_CLIENT_ID
             - name: GOOGLE_ADS_MCP_OAUTH_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "google-ads-mcp.fullname" . }}
+                  name: {{ .Values.secret.name | default (include "google-ads-mcp.fullname" .) }}
                   key: GOOGLE_ADS_CLIENT_SECRET
             {{- with .Values.auth.google.requireAuthorizationConsent }}
             - name: GOOGLE_ADS_MCP_OAUTH_REQUIRE_AUTHORIZATION_CONSENT
@@ -86,7 +86,7 @@ spec:
             - name: GOOGLE_ADS_MCP_OAUTH_JWT_SIGNING_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "google-ads-mcp.fullname" . }}
+                  name: {{ .Values.secret.name | default (include "google-ads-mcp.fullname" .) }}
                   key: GOOGLE_ADS_JWT_SIGNING_KEY
             {{- end }}
             # Auth storage
@@ -97,7 +97,7 @@ spec:
             - name: GOOGLE_ADS_MCP_AUTH_STORAGE_REDIS_URL
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "google-ads-mcp.fullname" . }}
+                  name: {{ .Values.secret.name | default (include "google-ads-mcp.fullname" .) }}
                   key: GOOGLE_ADS_AUTH_STORAGE_REDIS_URL
             {{- end }}
             {{- if and (eq .Values.auth.google.storage.type "disk") .Values.auth.google.storage.diskDirectory }}
@@ -108,7 +108,7 @@ spec:
             - name: GOOGLE_ADS_MCP_AUTH_STORAGE_ENCRYPTION_KEY
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "google-ads-mcp.fullname" . }}
+                  name: {{ .Values.secret.name | default (include "google-ads-mcp.fullname" .) }}
                   key: GOOGLE_ADS_ENCRYPTION_KEY
             {{- end }}
             {{- end }}
@@ -136,19 +136,19 @@ spec:
             - name: GOOGLE_ADS_MCP_AUTH_TOKEN_VERIFIER_BEARER_TOKEN
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "google-ads-mcp.fullname" . }}
+                  name: {{ .Values.secret.name | default (include "google-ads-mcp.fullname" .) }}
                   key: TOKEN_VERIFIER_BEARER_TOKEN
             {{- end }}
             {{- if eq .Values.auth.remote.tokenVerifier.auth "basic" }}
             - name: GOOGLE_ADS_MCP_AUTH_TOKEN_VERIFIER_BASIC_AUTH_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "google-ads-mcp.fullname" . }}
+                  name: {{ .Values.secret.name | default (include "google-ads-mcp.fullname" .) }}
                   key: TOKEN_VERIFIER_BASIC_USERNAME
             - name: GOOGLE_ADS_MCP_AUTH_TOKEN_VERIFIER_BASIC_AUTH_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "google-ads-mcp.fullname" . }}
+                  name: {{ .Values.secret.name | default (include "google-ads-mcp.fullname" .) }}
                   key: TOKEN_VERIFIER_BASIC_PASSWORD
             {{- end }}
             {{- if .Values.auth.remote.jwtProvider.enabled }}
@@ -156,7 +156,7 @@ spec:
             - name: GOOGLE_ADS_MCP_AUTH_JWT_PROVIDER_PRIVATE_KEYS
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "google-ads-mcp.fullname" . }}
+                  name: {{ .Values.secret.name | default (include "google-ads-mcp.fullname" .) }}
                   key: JWT_PROVIDER_PRIVATE_KEYS
             - name: GOOGLE_ADS_MCP_AUTH_JWT_PROVIDER_ALGORITHM
               value: {{ .Values.auth.remote.jwtProvider.algorithm | quote }}
@@ -168,7 +168,7 @@ spec:
             - name: GOOGLE_ADS_MCP_AUTH_JWT_PROVIDER_CLAIMS
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "google-ads-mcp.fullname" $ }}
+                  name: {{ $.Values.secret.name | default (include "google-ads-mcp.fullname" $) }}
                   key: JWT_PROVIDER_CLAIMS
             {{- end }}
             {{- end }}
