@@ -94,16 +94,9 @@
             "type": "array"
           },
           "limit": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "string"
-              }
-            ],
             "default": null,
-            "description": "The maximum number of rows to return"
+            "description": "The maximum number of rows to return",
+            "type": "integer"
           },
           "orderings": {
             "default": null,
