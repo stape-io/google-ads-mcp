@@ -7,7 +7,7 @@ dependencies = [
     "google-ads>=30.1.0",
     "mcp[cli]>=1.2.0",
     "fastmcp>=3.2.0",
-    "joserfc>=1.6.1",
+    "joserfc>=1.6.5",
     "httpx>=0.28.1",
 ]
 
@@ -25,6 +25,9 @@ classifiers = [
 dev = [
     "black",
     "nox >=2025.5.1, <2026"
+]
+redis = [
+    "redis[hiredis]>=7.4.0"
 ]
 
 [project.urls]
@@ -46,7 +49,7 @@ dev = [
 
 lint = [
     "black",
-    "mypy>=1.19.1",
+    "mypy>=2.0.0",
     "ruff>=0.14.14",
     "types-protobuf>=6.32.1.20251210",
     "types-cachetools>=6.2.0",
@@ -54,6 +57,10 @@ lint = [
 
 test =[
     "google-genai>=1.74.0,<2.0.0",
+]
+
+redis = [
+    "redis[hiredis]>=7.4.0",
 ]
 
 
