@@ -9,4 +9,4 @@ secret:
   create: false
 image:
   pullPolicy: IfNotPresent
-  tag: 4adb41e-25502092161-1
+  tag: bf4df08-25505116154-1
