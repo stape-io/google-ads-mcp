@@ -68,20 +68,20 @@ class GoogleAdsMCPAuthStorageSettings(BaseSettings):
         return self
 
 
-    @field_validator("encryption_key", mode="before")
-    @classmethod
-    def get_encryption_key(cls, v: Any) -> SecretBytes | None:
-        if v is None:
-            return None
-        if isinstance(v, SecretStr):
-            v = v.get_secret_value()
-        if isinstance(v, str):
-            v = base64.urlsafe_b64decode(v)
-        if isinstance(v, bytes):
-            return SecretBytes(v)
-        if isinstance(v, SecretBytes):
-            return v
-        return None
+    # @field_validator("encryption_key", mode="before")
+    # @classmethod
+    # def get_encryption_key(cls, v: Any) -> SecretBytes | None:
+    #     if v is None:
+    #         return None
+    #     if isinstance(v, SecretStr):
+    #         v = v.get_secret_value()
+    #     if isinstance(v, str):
+    #         v = base64.urlsafe_b64decode(v)
+    #     if isinstance(v, bytes):
+    #         return SecretBytes(v)
+    #     if isinstance(v, SecretBytes):
+    #         return v
+    #     return None
 
 
 

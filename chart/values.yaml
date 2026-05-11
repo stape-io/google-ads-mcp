@@ -231,6 +231,8 @@ secret:
   # Set to true to create the Secret from values below.
   # Set to false if you manage the Secret externally.
   create: false
+  # Override the secret name. Defaults to the chart fullname.
+  name: ""
   data:
     # Google Ads developer token
     developerToken: ""

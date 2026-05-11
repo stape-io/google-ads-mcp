@@ -18,7 +18,7 @@ ingressRoute:
   priority: 10
 
 secret:
-  create: false  # Manage the Secret externally in production
+  create: false  # Manage the Secret externally
 
 image:
   pullPolicy: Always
