@@ -1,24 +1,24 @@
-# Production overrides — combine with values-google.yaml or values-remote.yaml.
-# Example:
-#   helm upgrade --install google-ads-mcp ./helm-chart/google-ads-mcp \
-#     -f values-google.yaml -f values-prod.yaml
-
-# Enable TLS certificate provisioning via cert-manager
+auth:
+  google:
+    extraAuthorizeParams:
+      access_type: offline
+    jwtSigningKeyEnabled: true
+    storage:
+      enabled: true
+      type: redis
+      encryptionKeyEnabled: true
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
 certificate:
   enabled: true
   issuerRef:
     name: cloudflare
     kind: ClusterIssuer
-
-# Enable Traefik IngressRoute
+host: mcp-google-ads.stape.io
 ingressRoute:
   enabled: true
-  entryPoints:
-    - websecure
-  priority: 10
-
-secret:
-  create: false  # Manage the Secret externally
-
 image:
-  pullPolicy: Always
+  repository: europe-west1-docker.pkg.dev/stape-production/stape/mcp-gads
+  tag: 35e7b54-26809860443-1

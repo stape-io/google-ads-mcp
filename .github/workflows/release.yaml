@@ -1,4 +1,4 @@
-name: Release to prod
+name: Release to Production
 
 run-name: Deploy to 'prod'
 
@@ -6,9 +6,10 @@ on:
   workflow_dispatch:
 
 env:
+  GCP_PROJECT_ID: stape-production
+  GCP_PROJECT_NUMBER: 207001532273
   REGISTRY: europe-west1-docker.pkg.dev
-  REPOSITORY: stape-production/stape
-  IMAGE: mcp-gads
+  REPOSITORY: stape-production/stape/mcp-gads
 
 jobs:
   generate-image-tag:
@@ -22,55 +23,53 @@ jobs:
     permissions: write-all
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Authenticate to Google Cloud
         id: auth
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@v3
         with:
-          workload_identity_provider: projects/207001532273/locations/global/workloadIdentityPools/github/providers/stape-io
-          service_account: github-actions@stape-production.iam.gserviceaccount.com
+          workload_identity_provider: projects/${{ env.GCP_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github/providers/stape-io
+          service_account: github-actions@${{ env.GCP_PROJECT_ID }}.iam.gserviceaccount.com
           token_format: access_token
 
       - name: Login to GAR
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ${{ env.REGISTRY }}
           username: oauth2accesstoken
           password: ${{ steps.auth.outputs.access_token }}
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Build and Push Docker Image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}/${{ env.IMAGE }}:${{ needs.generate-image-tag.outputs.image_tag }}
+          tags: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:${{ needs.generate-image-tag.outputs.image_tag }}
 
-  sync-prod-secret:
-    name: Sync prod secret
+  update-k8s-secret:
+    name: Update Kubernetes Secret
     needs:
-      - generate-image-tag
       - build-and-push-image
     runs-on: ubuntu-latest
     permissions: write-all
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
-      - name: Authenticate to Google Cloud for thor
-        id: auth-thor
-        uses: google-github-actions/auth@v2
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v3
         with:
-          workload_identity_provider: projects/207001532273/locations/global/workloadIdentityPools/github/providers/stape-io
-          service_account: github-actions@stape-production.iam.gserviceaccount.com
+          workload_identity_provider: projects/${{ env.GCP_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/github/providers/stape-io
+          service_account: github-actions@${{ env.GCP_PROJECT_ID }}.iam.gserviceaccount.com
 
-      - name: Get GKE credentials for thor
-        uses: google-github-actions/get-gke-credentials@v2
+      - name: Get GKE credentials
+        uses: google-github-actions/get-gke-credentials@v3
         with:
-          project_id: stape-production
+          project_id: ${{ env.GCP_PROJECT_ID }}
           cluster_name: ${{ secrets.GKE_CLUSTER_PROD }}
           location: ${{ secrets.GKE_LOCATION_PROD }}
 
@@ -80,7 +79,7 @@ jobs:
       - name: Install 1Password CLI
         uses: 1password/install-cli-action@v1
 
-      - name: Sync prod secret to thor
+      - name: Update Kubernetes Secret
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
         run: |
@@ -104,22 +103,21 @@ jobs:
             --from-env-file=.env.local \
             -o yaml | kubectl apply -f -
 
-  update-argocd:
-    name: Update ArgoCD config
+  update-image-tag:
+    name: Update Image Tag
     needs:
       - generate-image-tag
-      - build-and-push-image
-      - sync-prod-secret
+      - update-k8s-secret
     runs-on: ubuntu-latest
     permissions: write-all
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Update Image Tag in values-prod.yaml
-        uses: fjogeleit/yaml-update-action@main
+        uses: fjogeleit/yaml-update-action@v0.17.0
         with:
-          branch: main
+          branch: OPS-2190 # TODO: switch to main
           changes: |
             {
               "chart/values-prod.yaml": {
