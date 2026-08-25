@@ -1,12 +1,12 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: {{ include "google-ads-mcp.fullname" . }}
+  name: {{ .Release.Name }}
   labels:
     {{- include "google-ads-mcp.labels" . | nindent 4 }}
 spec:
   commonName: {{ .Values.host | quote }}
-  secretName: {{ include "google-ads-mcp.fullname" . }}-certificate
+  secretName: {{ .Release.Name }}-certificate
   dnsNames:
     - {{ .Values.host | quote }}
   issuerRef:
