@@ -1,24 +1,10 @@
-auth:
-  google:
-    extraAuthorizeParams:
-      access_type: offline
-    jwtSigningKeyEnabled: true
-    storage:
-      enabled: true
-      type: redis
-      encryptionKeyEnabled: true
 autoscaling:
   enabled: true
-  minReplicas: 2
-  maxReplicas: 10
-certificate:
-  enabled: true
-  issuerRef:
-    name: cloudflare
-    kind: ClusterIssuer
 host: mcp-google-ads.stape.io
-ingressRoute:
-  enabled: true
 image:
   repository: europe-west1-docker.pkg.dev/stape-production/stape/mcp-gads
   tag: 35e7b54-26809860443-1
+resources:
+  requests:
+    cpu: 20m
+    memory: 300Mi
