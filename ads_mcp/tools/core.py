@@ -18,10 +18,10 @@ from typing import cast
 
 import ads_mcp.utils as utils
 from ads_mcp.coordinator import mcp
-from google.ads.googleads.v24.services.services.customer_service import (
+from google.ads.googleads.v25.services.services.customer_service import (
     CustomerServiceClient,
 )
-from google.ads.googleads.v24.services.types.customer_service import (
+from google.ads.googleads.v25.services.types.customer_service import (
     ListAccessibleCustomersResponse,
 )
 from mcp.types import ToolAnnotations

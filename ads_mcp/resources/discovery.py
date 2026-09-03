@@ -38,7 +38,7 @@ def get_discovery_document() -> str:
     Returns:
         str: The discovery document in JSON format.
     """
-    url = "https://googleads.googleapis.com/$discovery/rest?version=v24"
+    url = "https://googleads.googleapis.com/$discovery/rest?version=v25"
 
     response = httpx.get(url, headers={"User-Agent": "Mozilla/5.0"})
     response.raise_for_status()

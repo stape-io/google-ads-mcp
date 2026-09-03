@@ -26,7 +26,7 @@ import google.auth
 import proto
 from google.ads.googleads.client import GoogleAdsClient
 from google.ads.googleads.util import get_nested_attr
-from google.ads.googleads.v24.services.services.google_ads_service import (
+from google.ads.googleads.v25.services.services.google_ads_service import (
     GoogleAdsServiceClient,
 )
 
