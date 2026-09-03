@@ -165,10 +165,16 @@ def _search_tool_description() -> str:
 
 
 # The `search` tool requires a more complex description that's generated at
-# runtime. Uses the `add_tool` method instead of an annnotation since `add_tool`
-# provides the flexibility needed to generate the description while also
-# including the `search` method's docstring.
-search.__doc__ = _search_tool_description()
+# runtime. Uses the `add_tool` method instead of an annotation since `add_tool`
+# accepts an explicit `description`, which is required here: passing the
+# generated text via `search.__doc__` instead lets FastMCP's docstring parser
+# (which looks for a Google-style `Args:` section to attribute per-parameter
+# descriptions) treat the embedded `Args:` block as authoritative and silently
+# discard everything after it, including the resource-list hints.
 mcp.add_tool(
-    Tool.from_function(search, annotations=ToolAnnotations(readOnlyHint=True))
+    Tool.from_function(
+        search,
+        description=_search_tool_description(),
+        annotations=ToolAnnotations(readOnlyHint=True),
+    )
 )
