@@ -14,6 +14,7 @@
 
 """Tools for exposing the API Search method to the MCP server."""
 
+import inspect
 from typing import Any
 
 import ads_mcp.utils as utils
@@ -102,8 +103,13 @@ def _search_tool_description() -> str:
     except FileNotFoundError:
         utils.logger.error("The specified file was not found.")
 
+    # inspect.getdoc(), not search.__doc__ directly: the raw attribute's
+    # indentation is compiler-dependent (Python 3.13+ dedents multi-line
+    # docstrings at compile time, earlier versions don't), which would make
+    # this generated text differ by Python version. getdoc() dedents
+    # consistently on any supported version.
     return f"""
-{search.__doc__}
+{inspect.getdoc(search)}
 
 ### Hints
     Language Grammar can be found at https://developers.google.com/google-ads/api/docs/query/grammar
