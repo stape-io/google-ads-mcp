@@ -75,12 +75,19 @@
         "additionalProperties": false,
         "properties": {
           "conditions": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "default": null,
-            "description": "List of conditions to filter the data, combined using AND clauses",
-            "items": {
-              "type": "string"
-            },
-            "type": "array"
+            "description": "List of conditions to filter the data, combined using AND clauses"
           },
           "customer_id": {
             "description": "The id of the customer",
@@ -94,17 +101,46 @@
             "type": "array"
           },
           "limit": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "default": null,
-            "description": "The maximum number of rows to return",
-            "type": "integer"
+            "description": "The maximum number of rows to return"
+          },
+          "login_customer_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "The customer ID of the manager account when accessing client accounts."
           },
           "orderings": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "default": null,
-            "description": "How the data is ordered",
-            "items": {
-              "type": "string"
-            },
-            "type": "array"
+            "description": "How the data is ordered"
           },
           "resource": {
             "description": "The resource to return fields from",
