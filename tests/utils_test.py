@@ -15,6 +15,8 @@
 """Test cases for the utils module."""
 
 import unittest
+from unittest.mock import MagicMock, patch
+
 from google.ads.googleads.v25.enums.types.campaign_status import (
     CampaignStatusEnum,
 )
@@ -65,3 +67,48 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(len(formatted), 2)
         self.assertEqual(formatted[0].get("clicks"), "10")
         self.assertEqual(formatted[1].get("clicks"), "20")
+
+    @patch("ads_mcp.utils.httpx.get")
+    @patch("ads_mcp.utils._create_credentials")
+    def test_download_authenticated_url(
+        self, mock_create_credentials, mock_httpx_get
+    ):
+        """Tests that download_authenticated_url sends a bearer token and
+        returns the response content."""
+        mock_credentials = MagicMock()
+        mock_credentials.valid = True
+        mock_credentials.token = "fake-token"
+        mock_create_credentials.return_value = mock_credentials
+
+        mock_response = MagicMock()
+        mock_response.content = b"file content"
+        mock_httpx_get.return_value = mock_response
+
+        result = utils.download_authenticated_url("https://example.com/f")
+
+        mock_httpx_get.assert_called_once_with(
+            "https://example.com/f",
+            headers={"Authorization": "Bearer fake-token"},
+        )
+        mock_response.raise_for_status.assert_called_once()
+        self.assertEqual(result, b"file content")
+
+    @patch("ads_mcp.utils.httpx.get")
+    @patch("ads_mcp.utils._create_credentials")
+    def test_download_authenticated_url_refreshes_invalid_credentials(
+        self, mock_create_credentials, mock_httpx_get
+    ):
+        """Tests that credentials are refreshed if not already valid (e.g.
+        Application Default Credentials, which start without a token)."""
+        mock_credentials = MagicMock()
+        mock_credentials.valid = False
+        mock_credentials.token = "refreshed-token"
+        mock_create_credentials.return_value = mock_credentials
+
+        mock_response = MagicMock()
+        mock_response.content = b"file content"
+        mock_httpx_get.return_value = mock_response
+
+        utils.download_authenticated_url("https://example.com/f")
+
+        mock_credentials.refresh.assert_called_once()

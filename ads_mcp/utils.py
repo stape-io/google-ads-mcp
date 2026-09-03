@@ -23,6 +23,8 @@ from contextvars import ContextVar
 from typing import Any
 
 import google.auth
+import google.auth.transport.requests
+import httpx
 import proto
 from google.ads.googleads.client import GoogleAdsClient
 from google.ads.googleads.util import get_nested_attr
@@ -142,3 +144,15 @@ def get_gaql_resources_filepath():
     package_root = importlib.resources.files("ads_mcp")
     file_path = package_root.joinpath(_GAQL_FILENAME)
     return file_path
+
+
+def download_authenticated_url(url: str) -> bytes:
+    """Downloads a URL that requires the same Ads OAuth credentials as gRPC calls."""
+    credentials = _create_credentials()
+    if not credentials.valid:
+        credentials.refresh(google.auth.transport.requests.Request())
+    response = httpx.get(
+        url, headers={"Authorization": f"Bearer {credentials.token}"}
+    )
+    response.raise_for_status()
+    return response.content
