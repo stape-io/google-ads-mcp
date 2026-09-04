@@ -27,13 +27,48 @@ An interface to the Google Ads API over MCP, with Google OAuth built in.
 
 ## Available tools
 
-| Tool | What it does |
-| --- | --- |
-| `list_accessible_customers` | Lists the customer account IDs directly accessible by the authenticated user |
-| `search` | Runs a GAQL query against the Google Ads API |
-| `get_resource_metadata` | Returns the selectable, filterable, and sortable fields for a Google Ads resource |
+All tools are read-only. The typical flow for a query is: `list_accessible_customers` to find an account, `get_resource_metadata` to look up valid fields for a resource, then `search` to run the actual query.
 
-Plus a handful of read-only resources (discovery document, metrics, segments, release notes) that give the model reference documentation for building queries.
+### `list_accessible_customers`
+
+Returns the customer IDs directly accessible by the authenticated user. No arguments. Use this first when the user hasn't given you a customer ID — most other tools require one.
+
+### `search`
+
+Runs a query against the Google Ads API's `search` method (GAQL — Google Ads Query Language) and returns the matching rows.
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `customer_id` | yes | Plain numeric account ID (e.g. `1234567890`, no dashes) |
+| `fields` | yes | Fields to select, e.g. `["campaign.id", "campaign.name", "metrics.clicks"]` |
+| `resource` | yes | The GAQL resource to query, e.g. `campaign`, `ad_group`, `billing_setup` |
+| `conditions` | no | List of `WHERE` conditions, combined with `AND` |
+| `orderings` | no | List of `ORDER BY` clauses |
+| `limit` | no | Max number of rows to return |
+| `login_customer_id` | no | Manager (MCC) account ID — required when `customer_id` is a client account under a manager |
+
+The tool's description (fed to the model) is generated at runtime from `ads_mcp/gaql_resources.txt` and includes the full list of valid resources for the pinned API version, plus hints on date formats, pagination limits, and troubleshooting `login_customer_id` permission errors — see `ads_mcp/tools/search.py` for the exact text.
+
+### `get_resource_metadata`
+
+Given a resource name (e.g. `campaign`, `ad_group`), returns which fields on it are `selectable`, `filterable`, and `sortable` — including compatible `metrics.*` and `segments.*` fields. Field names aren't guessable from the API docs alone; this is the tool that's meant to be called before building a `search` query against a resource you haven't queried before.
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `resource_name` | yes | The Google Ads resource name, e.g. `campaign` |
+
+### Resources
+
+A handful of read-only MCP resources give the model reference documentation instead of requiring a tool call:
+
+| Resource URI | Content |
+| --- | --- |
+| `resource://discovery-document` | The Google Ads API discovery document (JSON) — resources, methods, and schemas at a high level |
+| `resource://metrics` | Official docs listing every queryable metric |
+| `resource://segments` | Official docs listing every queryable segment |
+| `resource://release-notes` | Official Google Ads API release notes (new features, deprecations, breaking changes) |
+
+These are fetched live from `developers.google.com`/`googleads.googleapis.com` on each read, not bundled into the repo.
 
 ## Installation
 
