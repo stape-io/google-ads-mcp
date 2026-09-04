@@ -118,6 +118,18 @@
           "issue_year": {
             "description": "The invoice issue year, e.g. \"2026\". Invoices before 2019\ncannot be retrieved.",
             "type": "string"
+          },
+          "login_customer_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "The customer ID of the manager account, required\nwhen customer_id is a client account (sub-account) under a\nmanager (MCC) \u2014 same as the `search` tool's parameter of the\nsame name."
           }
         },
         "required": [

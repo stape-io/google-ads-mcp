@@ -32,6 +32,7 @@ def list_invoices(
     billing_setup_id: str,
     issue_year: str,
     issue_month: str,
+    login_customer_id: str | None = None,
 ) -> list[dict[str, Any]]:
     """Lists invoices issued for a given billing setup and month.
 
@@ -47,7 +48,14 @@ def list_invoices(
         issue_year: The invoice issue year, e.g. "2026". Invoices before 2019
             cannot be retrieved.
         issue_month: The invoice issue month name in uppercase, e.g. "MARCH".
+        login_customer_id: The customer ID of the manager account, required
+            when customer_id is a client account (sub-account) under a
+            manager (MCC) — same as the `search` tool's parameter of the
+            same name.
     """
+    if login_customer_id:
+        utils.set_login_customer_id(login_customer_id)
+
     ga_service = utils.get_googleads_service("GoogleAdsService")
     billing_setup = ga_service.billing_setup_path(customer_id, billing_setup_id)
 

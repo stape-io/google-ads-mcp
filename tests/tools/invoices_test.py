@@ -63,6 +63,55 @@ class TestListInvoices(unittest.TestCase):
         self.assertEqual(results[0]["pdf_url"], "https://example.com/1.pdf")
         self.assertEqual(results[1]["id"], "2")
 
+    @patch("ads_mcp.utils.set_login_customer_id")
+    @patch("ads_mcp.utils.get_googleads_service")
+    def test_list_invoices_sets_login_customer_id(
+        self, mock_get_service, mock_set_login_customer_id
+    ):
+        """Tests that a provided login_customer_id is set before the calls."""
+        mock_service = MagicMock()
+        mock_get_service.return_value = mock_service
+        mock_service.billing_setup_path.return_value = (
+            "customers/1234567890/billingSetups/999"
+        )
+        mock_response = MagicMock()
+        mock_response.invoices = []
+        mock_service.list_invoices.return_value = mock_response
+
+        invoices.list_invoices(
+            customer_id="1234567890",
+            billing_setup_id="999",
+            issue_year="2026",
+            issue_month="march",
+            login_customer_id="9876543210",
+        )
+
+        mock_set_login_customer_id.assert_called_once_with("9876543210")
+
+    @patch("ads_mcp.utils.set_login_customer_id")
+    @patch("ads_mcp.utils.get_googleads_service")
+    def test_list_invoices_without_login_customer_id(
+        self, mock_get_service, mock_set_login_customer_id
+    ):
+        """Tests that login_customer_id is left unset when not provided."""
+        mock_service = MagicMock()
+        mock_get_service.return_value = mock_service
+        mock_service.billing_setup_path.return_value = (
+            "customers/1234567890/billingSetups/999"
+        )
+        mock_response = MagicMock()
+        mock_response.invoices = []
+        mock_service.list_invoices.return_value = mock_response
+
+        invoices.list_invoices(
+            customer_id="1234567890",
+            billing_setup_id="999",
+            issue_year="2026",
+            issue_month="march",
+        )
+
+        mock_set_login_customer_id.assert_not_called()
+
     @patch("ads_mcp.utils.get_googleads_service")
     def test_list_invoices_google_ads_exception(self, mock_get_service):
         """Tests that list_invoices surfaces GoogleAdsException as a ToolError."""
