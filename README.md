@@ -57,6 +57,28 @@ Given a resource name (e.g. `campaign`, `ad_group`), returns which fields on it 
 | --- | --- | --- |
 | `resource_name` | yes | The Google Ads resource name, e.g. `campaign` |
 
+### `list_invoices`
+
+Lists invoices issued for a given billing setup and month. Requires the account to have monthly invoicing enabled — most advertisers are on automatic payments and won't have any invoices to list.
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `customer_id` | yes | Plain numeric ID of the serving customer account |
+| `billing_setup_id` | yes | Numeric billing setup ID — discoverable via `search`: `SELECT billing_setup.id FROM billing_setup` |
+| `issue_year` | yes | Invoice issue year, e.g. `"2026"` (invoices before 2019 aren't retrievable) |
+| `issue_month` | yes | Invoice issue month name, e.g. `"march"` |
+| `login_customer_id` | no | Manager (MCC) account ID — required when `customer_id` is a client account under a manager, same rule as `search` |
+
+### `download_invoice_pdf`
+
+Downloads one invoice's PDF, given the `pdf_url` returned by `list_invoices`.
+
+| Argument | Required | Description |
+| --- | --- | --- |
+| `pdf_url` | yes | The `pdf_url` field from a `list_invoices` result |
+
+Returns a JSON object (`content_type`, `content_base64`) rather than raw bytes, since MCP tool results must be JSON-serializable.
+
 ### Resources
 
 A handful of read-only MCP resources give the model reference documentation instead of requiring a tool call:
