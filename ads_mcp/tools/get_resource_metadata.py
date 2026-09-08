@@ -18,10 +18,10 @@ from typing import Any, cast
 
 import ads_mcp.utils as utils
 from ads_mcp.coordinator import mcp
-from google.ads.googleads.v24.services.services.google_ads_field_service import (
+from google.ads.googleads.v25.services.services.google_ads_field_service import (
     GoogleAdsFieldServiceClient,
 )
-from google.ads.googleads.v24.services.types.google_ads_field_service import (
+from google.ads.googleads.v25.services.types.google_ads_field_service import (
     SearchGoogleAdsFieldsRequest,
 )
 from mcp.types import ToolAnnotations

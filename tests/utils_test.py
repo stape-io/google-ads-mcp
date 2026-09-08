@@ -15,10 +15,10 @@
 """Test cases for the utils module."""
 
 import unittest
-from google.ads.googleads.v24.enums.types.campaign_status import (
+from google.ads.googleads.v25.enums.types.campaign_status import (
     CampaignStatusEnum,
 )
-from google.ads.googleads.v24.common.types.metrics import Metrics
+from google.ads.googleads.v25.common.types.metrics import Metrics
 
 from ads_mcp import utils
 

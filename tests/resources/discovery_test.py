@@ -36,7 +36,7 @@ class DiscoveryTest(unittest.TestCase):
 
         # Verify httpx.get was called correctly
         mock_get.assert_called_once_with(
-            "https://googleads.googleapis.com/$discovery/rest?version=v24",
+            "https://googleads.googleapis.com/$discovery/rest?version=v25",
             headers={"User-Agent": "Mozilla/5.0"},
         )
         mock_response.raise_for_status.assert_called_once()

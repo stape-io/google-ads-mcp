@@ -1,4 +1,4 @@
 host: mcp-google-ads.stape.dev
 image:
   repository: europe-west1-docker.pkg.dev/stape-development/stape/mcp-gads
-  tag: 62a099f-26238003755-1
+  tag: 4fe2d38-34230465889-1
