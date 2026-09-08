@@ -15,6 +15,7 @@ An interface to the Google Ads API over MCP, with Google OAuth built in.
     - [GitHub Copilot](#github-copilot)
     - [Copilot CLI](#copilot-cli)
     - [Cursor](#cursor)
+    - [Antigravity](#antigravity)
     - [ChatGPT](#chatgpt)
     - [Other MCP clients](#other-mcp-clients)
     - [Troubleshooting](#troubleshooting)
@@ -172,6 +173,25 @@ Cursor speaks HTTP directly, no `mcp-remote` needed. Add this to `.cursor/mcp.js
   "mcpServers": {
     "google-ads-mcp": {
       "url": "https://mcp-google-ads.stape.io/mcp"
+    }
+  }
+}
+```
+
+### Antigravity
+
+Antigravity's own OAuth support for remote HTTP servers doesn't reliably reach a token to the server yet ([antigravity-cli#25](https://github.com/google-antigravity/antigravity-cli/issues/25)), so use `mcp-remote` here too, the same way Claude Desktop does. Add this to `~/.gemini/config/mcp_config.json` (global) or `.agents/mcp_config.json` (workspace-local) — accessible from the editor's agent panel via **… → MCP Servers → Manage MCP Servers → View raw config**:
+
+```json
+{
+  "mcpServers": {
+    "google-ads-mcp": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "https://mcp-google-ads.stape.io/mcp"
+      ]
     }
   }
 }
