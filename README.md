@@ -24,6 +24,7 @@ An interface to the Google Ads API over MCP, with Google OAuth built in.
     - [Running locally](#running-locally)
     - [Testing](#testing)
     - [Linting and formatting](#linting-and-formatting)
+  - [Useful resources](#useful-resources)
   - [Open Source](#open-source)
 
 ## Available tools
@@ -348,6 +349,10 @@ nox -s update_smoke_golden
 nox -s format   # applies black formatting
 nox -s lint     # checks formatting only, fails on drift
 ```
+
+## Useful resources
+
+- [Step-by-step guide: MCP Server for Google Ads](https://stape.io/blog/mcp-server-for-google-ads)
 
 ## Open Source
 
