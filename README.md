@@ -94,7 +94,7 @@ These are fetched live from `developers.google.com`/`googleads.googleapis.com` o
 
 ## Installation
 
-This server is a remote, HTTP-based MCP endpoint at `https://mcp-google-ads.stape.io/mcp`. Most clients reach it through [`mcp-remote`](https://github.com/geelen/mcp-remote#readme), a small bridge that lets stdio-only clients talk to a remote HTTP MCP server; a few clients (VS Code, Cursor) speak HTTP directly.
+This server is a remote, HTTP-based MCP endpoint at `https://mcp-google-ads.stape.io/mcp`. Clients whose MCP support completes the Google OAuth flow natively (Claude Code, VS Code, Copilot CLI, Cursor, ChatGPT) connect straight to that URL; the rest need the [`mcp-remote`](https://github.com/geelen/mcp-remote#readme) bridge, a small proxy that lets stdio-only clients talk to a remote HTTP MCP server.
 
 Restart the client after changing its config. A browser window opens for the Google OAuth flow the first time a tool is used — complete it to grant access to your Google Ads account.
 
@@ -119,11 +119,13 @@ Open Claude Desktop and navigate to Settings -> Developer -> Edit Config. Add th
 
 ### Claude Code
 
+Claude Code speaks HTTP directly, including the OAuth handshake, so no bridge is needed:
+
 ```bash
-claude mcp add google-ads-mcp -- npx -y mcp-remote https://mcp-google-ads.stape.io/mcp
+claude mcp add --transport http google-ads-mcp https://mcp-google-ads.stape.io/mcp
 ```
 
-This writes the server entry into `.mcp.json` / your Claude Code MCP config. Run `/mcp` inside Claude Code to confirm it connected.
+A browser window opens for the Google OAuth flow the first time a tool is used. This writes the server entry into `.mcp.json` / your Claude Code MCP config. Run `/mcp` inside Claude Code to confirm it connected.
 
 ### VS Code
 
@@ -146,18 +148,14 @@ GitHub Copilot Chat in VS Code uses VS Code's own MCP client, so it reads the sa
 
 ### Copilot CLI
 
-Copilot CLI needs the `mcp-remote` bridge too. Add this to `~/.copilot/mcp-config.json`:
+Copilot CLI also completes OAuth natively for remote HTTP servers, no bridge needed. Add this to `~/.copilot/mcp-config.json`:
 
 ```json
 {
   "mcpServers": {
     "google-ads-mcp": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "mcp-remote",
-        "https://mcp-google-ads.stape.io/mcp"
-      ]
+      "type": "http",
+      "url": "https://mcp-google-ads.stape.io/mcp"
     }
   }
 }
