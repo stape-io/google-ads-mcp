@@ -28,7 +28,12 @@ from ads_mcp.resources import (
 # object, even though they are not directly used in this file.
 # The `# noqa: F401` comment tells the linter to ignore the "unused import"
 # warning.
-from ads_mcp.tools import core, get_resource_metadata, search  # noqa: F401
+from ads_mcp.tools import (  # noqa: F401
+    core,
+    get_resource_metadata,
+    invoices,
+    search,
+)
 
 
 def run_server() -> None:

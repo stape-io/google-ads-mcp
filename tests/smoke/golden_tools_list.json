@@ -9,6 +9,35 @@
       "annotations": {
         "readOnlyHint": true
       },
+      "description": "Downloads one invoice's PDF document.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "pdf_url": {
+            "description": "The `pdf_url` of an invoice, as returned by `list_invoices`.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "pdf_url"
+        ],
+        "type": "object"
+      },
+      "name": "download_invoice_pdf",
+      "outputSchema": {
+        "additionalProperties": true,
+        "type": "object"
+      }
+    },
+    {
+      "_meta": {
+        "fastmcp": {
+          "tags": []
+        }
+      },
+      "annotations": {
+        "readOnlyHint": true
+      },
       "description": "Retrieves the selectable, filterable, and sortable fields for a specific Google Ads resource,\nincluding compatible metrics and segments.\n\nUse this tool to find out which fields you can select, filter by, or sort by\nwhen querying a specific resource (e.g., 'campaign', 'ad_group').\nThis tool also returns metrics and segments that can be selected with the resource.\nTheir names start with 'metrics.' and 'segments.' respectively.\n\nDo not guess fields, you MUST use this tool to discover them before constructing a query for the\n`search` tool.\n\nThe responses of this tool should be cached, as they don't change frequently.",
       "inputSchema": {
         "additionalProperties": false,
@@ -50,6 +79,74 @@
           "result": {
             "items": {
               "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "result"
+        ],
+        "type": "object",
+        "x-fastmcp-wrap-result": true
+      }
+    },
+    {
+      "_meta": {
+        "fastmcp": {
+          "tags": []
+        }
+      },
+      "annotations": {
+        "readOnlyHint": true
+      },
+      "description": "Lists invoices issued for a given billing setup and month.\n\nRequires the account to have monthly invoicing enabled. Most advertisers\nare on automatic payments and will get an empty result or an error for\nthis tool.",
+      "inputSchema": {
+        "additionalProperties": false,
+        "properties": {
+          "billing_setup_id": {
+            "description": "The numeric id of the billing setup. Discoverable\nvia the `search` tool: SELECT billing_setup.id FROM billing_setup.",
+            "type": "string"
+          },
+          "customer_id": {
+            "description": "The id of the serving customer account (plain numeric\nstring, e.g. \"1234567890\").",
+            "type": "string"
+          },
+          "issue_month": {
+            "description": "The invoice issue month name in uppercase, e.g. \"MARCH\".",
+            "type": "string"
+          },
+          "issue_year": {
+            "description": "The invoice issue year, e.g. \"2026\". Invoices before 2019\ncannot be retrieved.",
+            "type": "string"
+          },
+          "login_customer_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "The customer ID of the manager account, required\nwhen customer_id is a client account (sub-account) under a\nmanager (MCC) \u2014 same as the `search` tool's parameter of the\nsame name."
+          }
+        },
+        "required": [
+          "customer_id",
+          "billing_setup_id",
+          "issue_year",
+          "issue_month"
+        ],
+        "type": "object"
+      },
+      "name": "list_invoices",
+      "outputSchema": {
+        "properties": {
+          "result": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
             },
             "type": "array"
           }
