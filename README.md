@@ -101,6 +101,9 @@ Restart the client after changing its config. A browser window opens for the Goo
 
 ### Claude Desktop
 
+<details>
+<summary>⬇️ Click to expand ⬇️</summary>
+
 Open Claude Desktop and navigate to Settings -> Developer -> Edit Config. Add this to the configuration file:
 
 ```json
@@ -118,7 +121,12 @@ Open Claude Desktop and navigate to Settings -> Developer -> Edit Config. Add th
 }
 ```
 
+</details>
+
 ### Claude Code
+
+<details>
+<summary>⬇️ Click to expand ⬇️</summary>
 
 Claude Code speaks HTTP directly, including the OAuth handshake, so no bridge is needed:
 
@@ -128,7 +136,12 @@ claude mcp add --transport http google-ads-mcp https://mcp-google-ads.stape.io/m
 
 A browser window opens for the Google OAuth flow the first time a tool is used. This writes the server entry into `.mcp.json` / your Claude Code MCP config. Run `/mcp` inside Claude Code to confirm it connected.
 
+</details>
+
 ### VS Code
+
+<details>
+<summary>⬇️ Click to expand ⬇️</summary>
 
 VS Code's MCP client supports HTTP servers and their OAuth flow natively, no `mcp-remote` needed. Add this to `.vscode/mcp.json`:
 
@@ -143,11 +156,21 @@ VS Code's MCP client supports HTTP servers and their OAuth flow natively, no `mc
 }
 ```
 
+</details>
+
 ### GitHub Copilot
+
+<details>
+<summary>⬇️ Click to expand ⬇️</summary>
 
 GitHub Copilot Chat in VS Code uses VS Code's own MCP client, so it reads the same `.vscode/mcp.json` file — see [VS Code](#vs-code) above. No separate configuration is needed.
 
+</details>
+
 ### Copilot CLI
+
+<details>
+<summary>⬇️ Click to expand ⬇️</summary>
 
 Copilot CLI also completes OAuth natively for remote HTTP servers, no bridge needed. Add this to `~/.copilot/mcp-config.json`:
 
@@ -164,7 +187,12 @@ Copilot CLI also completes OAuth natively for remote HTTP servers, no bridge nee
 
 See [GitHub's docs](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-mcp-servers) for the equivalent `copilot mcp add` subcommand.
 
+</details>
+
 ### Cursor
+
+<details>
+<summary>⬇️ Click to expand ⬇️</summary>
 
 Cursor speaks HTTP directly, no `mcp-remote` needed. Add this to `.cursor/mcp.json` (project-level) or `~/.cursor/mcp.json` (global — Settings → MCP → Add new global MCP server):
 
@@ -178,7 +206,12 @@ Cursor speaks HTTP directly, no `mcp-remote` needed. Add this to `.cursor/mcp.js
 }
 ```
 
+</details>
+
 ### Antigravity
+
+<details>
+<summary>⬇️ Click to expand ⬇️</summary>
 
 Antigravity's own OAuth support for remote HTTP servers doesn't reliably reach a token to the server yet ([antigravity-cli#25](https://github.com/google-antigravity/antigravity-cli/issues/25)), so use `mcp-remote` here too, the same way Claude Desktop does. Add this to `~/.gemini/config/mcp_config.json` (global) or `.agents/mcp_config.json` (workspace-local) — accessible from the editor's agent panel via **… → MCP Servers → Manage MCP Servers → View raw config**:
 
@@ -197,7 +230,12 @@ Antigravity's own OAuth support for remote HTTP servers doesn't reliably reach a
 }
 ```
 
+</details>
+
 ### ChatGPT
+
+<details>
+<summary>⬇️ Click to expand ⬇️</summary>
 
 1. In ChatGPT, enable Developer mode: Settings → Apps & Connectors → Advanced settings → Developer mode.
 2. Go to Settings → Connectors → Create, and set the server URL to `https://mcp-google-ads.stape.io/mcp`.
@@ -205,7 +243,12 @@ Antigravity's own OAuth support for remote HTTP servers doesn't reliably reach a
 
 ChatGPT only reaches servers over the public internet, it can't spawn a local process — so there's no local option here, only the hosted server.
 
+</details>
+
 ### Other MCP clients
+
+<details>
+<summary>⬇️ Click to expand ⬇️</summary>
 
 Any other MCP-compatible client that expects a stdio-style `command`/`args` config can use the same `mcp-remote` block:
 
@@ -223,6 +266,8 @@ Any other MCP-compatible client that expects a stdio-style `command`/`args` conf
   }
 }
 ```
+
+</details>
 
 ### Troubleshooting
 
