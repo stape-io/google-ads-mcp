@@ -96,7 +96,7 @@ These are fetched live from `developers.google.com`/`googleads.googleapis.com` o
 
 ## Installation
 
-This server is a remote, HTTP-based MCP endpoint at `https://mcp-google-ads.stape.io/mcp`. Clients whose MCP support completes the Google OAuth flow natively (Claude Code, VS Code, Copilot CLI, Cursor, ChatGPT) connect straight to that URL; the rest need the [`mcp-remote`](https://github.com/geelen/mcp-remote#readme) bridge, a small proxy that lets stdio-only clients talk to a remote HTTP MCP server.
+This server is a remote, HTTP-based MCP endpoint at `https://mcp-google-ads.stape.io/mcp`. Clients whose MCP support completes the Google OAuth flow natively (Claude Code, VS Code, Copilot CLI, Cursor, ChatGPT, Claude Desktop) connect straight to that URL; the rest need the [`mcp-remote`](https://github.com/geelen/mcp-remote#readme) bridge, a small proxy that lets stdio-only clients talk to a remote HTTP MCP server.
 
 Restart the client after changing its config. A browser window opens for the Google OAuth flow the first time a tool is used — complete it to grant access to your Google Ads account.
 
@@ -105,22 +105,24 @@ Restart the client after changing its config. A browser window opens for the Goo
 <details>
 <summary>⬇️ Click to expand ⬇️</summary>
 
-Open Claude Desktop and navigate to Settings -> Developer -> Edit Config. Add this to the configuration file:
+Claude Desktop connects to remote HTTP MCP servers natively, no bridge needed. Go to Settings → Connectors → Add custom connector, set the name to `google-ads-mcp` and the URL to `https://mcp-google-ads.stape.io/mcp`, then save. Click the new connector to complete the Google OAuth flow in the browser window that opens.
 
-```json
-{
-  "mcpServers": {
-    "google-ads-mcp": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "mcp-remote",
-        "https://mcp-google-ads.stape.io/mcp"
-      ]
-    }
-  }
-}
-```
+> `mcp-remote` is also possible, for anyone who'd rather configure it through the JSON config file (Settings -> Developer -> Edit Config) instead of the Connectors UI — less recommended, but still supported:
+>
+> ```json
+> {
+>   "mcpServers": {
+>     "google-ads-mcp": {
+>       "command": "npx",
+>       "args": [
+>         "-y",
+>         "mcp-remote",
+>         "https://mcp-google-ads.stape.io/mcp"
+>       ]
+>     }
+>   }
+> }
+> ```
 
 </details>
 
@@ -214,7 +216,7 @@ Cursor speaks HTTP directly, no `mcp-remote` needed. Add this to `.cursor/mcp.js
 <details>
 <summary>⬇️ Click to expand ⬇️</summary>
 
-Antigravity's own OAuth support for remote HTTP servers doesn't reliably reach a token to the server yet ([antigravity-cli#25](https://github.com/google-antigravity/antigravity-cli/issues/25)), so use `mcp-remote` here too, the same way Claude Desktop does. Add this to `~/.gemini/config/mcp_config.json` (global) or `.agents/mcp_config.json` (workspace-local) — accessible from the editor's agent panel via **… → MCP Servers → Manage MCP Servers → View raw config**:
+Antigravity's own OAuth support for remote HTTP servers doesn't reliably reach a token to the server yet ([antigravity-cli#25](https://github.com/google-antigravity/antigravity-cli/issues/25)), so use `mcp-remote` here too. Add this to `~/.gemini/config/mcp_config.json` (global) or `.agents/mcp_config.json` (workspace-local) — accessible from the editor's agent panel via **… → MCP Servers → Manage MCP Servers → View raw config**:
 
 ```json
 {
