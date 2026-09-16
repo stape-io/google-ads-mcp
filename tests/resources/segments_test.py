@@ -21,6 +21,9 @@ from ads_mcp.resources import segments
 
 
 class SegmentsTest(unittest.TestCase):
+    def setUp(self):
+        segments.get_segments.cache_clear()
+
     @mock.patch("ads_mcp.resources.segments.httpx.get")
     def test_get_segments(self, mock_get):
         # Setup mock response
@@ -42,3 +45,12 @@ class SegmentsTest(unittest.TestCase):
             timeout=30.0,
         )
         mock_response.raise_for_status.assert_called_once()
+
+    @mock.patch("ads_mcp.resources.segments.httpx.get")
+    def test_second_read_does_not_refetch(self, mock_get):
+        mock_get.return_value = mock.MagicMock(text="Mock segments content")
+
+        segments.get_segments()
+        segments.get_segments()
+
+        mock_get.assert_called_once()

@@ -21,6 +21,9 @@ from ads_mcp.resources import metrics
 
 
 class MetricsTest(unittest.TestCase):
+    def setUp(self):
+        metrics.get_metrics.cache_clear()
+
     @mock.patch("ads_mcp.resources.metrics.httpx.get")
     def test_get_metrics(self, mock_get):
         # Setup mock response
@@ -43,3 +46,12 @@ class MetricsTest(unittest.TestCase):
             timeout=30.0,
         )
         mock_response.raise_for_status.assert_called_once()
+
+    @mock.patch("ads_mcp.resources.metrics.httpx.get")
+    def test_second_read_does_not_refetch(self, mock_get):
+        mock_get.return_value = mock.MagicMock(text="Mock metrics content")
+
+        metrics.get_metrics()
+        metrics.get_metrics()
+
+        mock_get.assert_called_once()

@@ -14,6 +14,8 @@
 
 """Discovery document resource."""
 
+import functools
+
 import httpx
 
 from ads_mcp.coordinator import mcp
@@ -23,6 +25,7 @@ from ads_mcp.coordinator import mcp
     uri="resource://discovery-document",
     mime_type="application/json",
 )
+@functools.lru_cache(maxsize=1)
 def get_discovery_document() -> str:
     """Retrieve the Google Ads API discovery document.
 

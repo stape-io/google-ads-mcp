@@ -21,6 +21,9 @@ from ads_mcp.resources import release_notes
 
 
 class ReleaseNotesTest(unittest.TestCase):
+    def setUp(self):
+        release_notes.get_release_notes.cache_clear()
+
     @mock.patch("ads_mcp.resources.release_notes.httpx.get")
     def test_get_release_notes(self, mock_get):
         # Setup mock response
@@ -42,3 +45,14 @@ class ReleaseNotesTest(unittest.TestCase):
             timeout=30.0,
         )
         mock_response.raise_for_status.assert_called_once()
+
+    @mock.patch("ads_mcp.resources.release_notes.httpx.get")
+    def test_second_read_does_not_refetch(self, mock_get):
+        mock_get.return_value = mock.MagicMock(
+            text="Mock release notes content"
+        )
+
+        release_notes.get_release_notes()
+        release_notes.get_release_notes()
+
+        mock_get.assert_called_once()

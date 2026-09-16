@@ -14,6 +14,8 @@
 
 """Segments resource."""
 
+import functools
+
 import httpx
 
 from ads_mcp.coordinator import mcp
@@ -23,6 +25,7 @@ from ads_mcp.coordinator import mcp
     uri="resource://segments",
     mime_type="text/html",
 )
+@functools.lru_cache(maxsize=1)
 def get_segments() -> str:
     """Retrieve the Google Ads API segments documentation.
 
