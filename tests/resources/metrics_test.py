@@ -40,5 +40,7 @@ class MetricsTest(unittest.TestCase):
         mock_get.assert_called_once_with(
             "https://developers.google.com/google-ads/api/fields/latest/metrics",
             headers={"User-Agent": "Mozilla/5.0"},
+            follow_redirects=True,
+            timeout=30.0,
         )
         mock_response.raise_for_status.assert_called_once()

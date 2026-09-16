@@ -22,7 +22,6 @@ from ads_mcp.coordinator import mcp
 @mcp.resource(
     uri="resource://metrics",
     mime_type="text/html",
-    annotations={"readOnlyHint": True, "idempotentHint": True},
 )
 def get_metrics() -> str:
     """Retrieve the Google Ads API metrics documentation.
@@ -38,6 +37,12 @@ def get_metrics() -> str:
         str: The metrics documentation in HTML format.
     """
     url = "https://developers.google.com/google-ads/api/fields/latest/metrics"
-    response = httpx.get(url, headers={"User-Agent": "Mozilla/5.0"})
+    # These docs pages are multi-MB; httpx's 5s default is not enough.
+    response = httpx.get(
+        url,
+        headers={"User-Agent": "Mozilla/5.0"},
+        follow_redirects=True,
+        timeout=30.0,
+    )
     response.raise_for_status()
     return response.text

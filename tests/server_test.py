@@ -29,3 +29,55 @@ class TestUtils(unittest.TestCase):
         from ads_mcp import server
 
         self.assertIsNotNone(server.mcp, "MCP server instance not initialized")
+
+
+class ProtocolNegotiationTest(unittest.IsolatedAsyncioTestCase):
+    """Locks in the protocol revisions this server actually serves.
+
+    The rest of the suite calls tool functions directly and never speaks the
+    protocol; tests/smoke/ speaks it but pins the 2024-11-05 handshake. These
+    tests are the only thing asserting that 2026-07-28 is served at all.
+    """
+
+    async def _negotiate(self, mode):
+        from ads_mcp.server import mcp
+        from fastmcp import Client
+
+        async with Client(mcp, mode=mode) as client:
+            # Deliberately not client.initialize_result: the modern era has no
+            # `initialize` handshake (it sends server/discover), so that
+            # attribute is None under mode="auto".
+            version = client.protocol_version
+            tools = await client.list_tools()
+            resources = await client.list_resources()
+        return (
+            version,
+            {t.name for t in tools},
+            {str(r.uri) for r in resources},
+        )
+
+    async def test_negotiates_modern_protocol(self):
+        """A modern client must get 2026-07-28, not a 2025-era fallback."""
+        version, tools, resources = await self._negotiate("auto")
+        # Literal, not mcp.types.LATEST_PROTOCOL_VERSION: asserting against
+        # the constant is tautological and would pass on any future bump.
+        self.assertEqual(version, "2026-07-28")
+        self.assertIn("search", tools)
+        self.assertIn("resource://metrics", resources)
+
+    async def test_legacy_clients_still_served(self):
+        """Pre-2026 clients keep working, with an identical inventory."""
+        legacy = await self._negotiate("legacy")
+        modern = await self._negotiate("auto")
+        self.assertEqual(legacy[0], "2025-11-25")
+        self.assertEqual(legacy[1], modern[1])
+        self.assertEqual(legacy[2], modern[2])
+
+
+class HttpAppTest(unittest.TestCase):
+    """The only test covering the object uvicorn actually serves."""
+
+    def test_deployed_app_builds_with_healthz(self):
+        import server
+
+        self.assertIn("/healthz", [r.path for r in server.app.routes])

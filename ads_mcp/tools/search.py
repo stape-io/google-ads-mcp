@@ -181,6 +181,6 @@ mcp.add_tool(
     Tool.from_function(
         search,
         description=_search_tool_description(),
-        annotations=ToolAnnotations(readOnlyHint=True),
+        annotations=ToolAnnotations(read_only_hint=True),
     )
 )
