@@ -64,6 +64,18 @@ def _create_credentials() -> google.auth.credentials.Credentials:
         # Create credentials using the access token provided by FastMCP
         return Credentials(token=token_obj.token)
 
+    # No caller token. ADC is the intended path for stdio/local use, but when
+    # an auth provider is configured every request belongs to a user, so
+    # falling back here would silently run their query as this server's own
+    # identity instead of failing loudly.
+    from ads_mcp.auth.settings import GoogleAdsMCPSettings
+
+    if GoogleAdsMCPSettings().auth_provider is not None:
+        raise ValueError(
+            "No caller credentials available on an authenticated server; "
+            "refusing to fall back to this server's own identity."
+        )
+
     credentials, _ = google.auth.default(scopes=[_ADS_SCOPE])
     return credentials
 

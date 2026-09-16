@@ -112,3 +112,36 @@ class TestUtils(unittest.TestCase):
         utils.download_authenticated_url("https://example.com/f")
 
         mock_credentials.refresh.assert_called_once()
+
+
+class TestCreateCredentials(unittest.TestCase):
+    """Test cases for the caller-token / ADC fallback in _create_credentials."""
+
+    @patch("ads_mcp.auth.settings.GoogleAdsMCPSettings")
+    @patch("fastmcp.server.dependencies.get_access_token")
+    def test_no_caller_token_with_auth_provider_raises(
+        self, mock_get_access_token, mock_settings_cls
+    ):
+        """An authenticated server must never silently fall back to its own
+        identity when the caller's token is missing."""
+        mock_get_access_token.return_value = None
+        mock_settings_cls.return_value.auth_provider = "google"
+
+        with self.assertRaises(ValueError):
+            utils._create_credentials()
+
+    @patch("google.auth.default")
+    @patch("ads_mcp.auth.settings.GoogleAdsMCPSettings")
+    @patch("fastmcp.server.dependencies.get_access_token")
+    def test_no_caller_token_without_auth_provider_uses_adc(
+        self, mock_get_access_token, mock_settings_cls, mock_default
+    ):
+        """stdio/local mode has no auth provider configured, so ADC remains
+        the intended fallback."""
+        mock_get_access_token.return_value = None
+        mock_settings_cls.return_value.auth_provider = None
+        mock_default.return_value = (MagicMock(), None)
+
+        utils._create_credentials()
+
+        mock_default.assert_called_once()
