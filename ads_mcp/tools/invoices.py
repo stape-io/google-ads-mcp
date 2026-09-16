@@ -15,13 +15,19 @@
 """Tools for listing and downloading Google Ads invoices."""
 
 import base64
-from typing import Any
+from typing import Any, cast
 
 import ads_mcp.utils as utils
 import proto
 from ads_mcp.coordinator import mcp
 from fastmcp.exceptions import ToolError
 from google.ads.googleads.errors import GoogleAdsException
+from google.ads.googleads.v25.services.services.google_ads_service import (
+    GoogleAdsServiceClient,
+)
+from google.ads.googleads.v25.services.services.invoice_service import (
+    InvoiceServiceClient,
+)
 from mcp.types import ToolAnnotations
 
 
@@ -55,16 +61,23 @@ def list_invoices(
     if login_customer_id:
         utils.set_login_customer_id(login_customer_id)
 
-    ga_service = utils.get_googleads_service("GoogleAdsService")
+    ga_service = cast(
+        GoogleAdsServiceClient, utils.get_googleads_service("GoogleAdsService")
+    )
     billing_setup = ga_service.billing_setup_path(customer_id, billing_setup_id)
 
-    invoice_service = utils.get_googleads_service("InvoiceService")
+    invoice_service = cast(
+        InvoiceServiceClient, utils.get_googleads_service("InvoiceService")
+    )
     try:
         response = invoice_service.list_invoices(
             customer_id=customer_id,
             billing_setup=billing_setup,
             issue_year=issue_year,
-            issue_month=issue_month.upper(),
+            # proto-plus enum fields accept the enum member's name as a str
+            # and resolve it at construction time; the generated stub only
+            # types the enum member itself.
+            issue_month=issue_month.upper(),  # type: ignore[arg-type]
         )
     except GoogleAdsException as ex:
         error_msgs = [

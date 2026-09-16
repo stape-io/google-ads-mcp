@@ -28,9 +28,6 @@ import httpx
 import proto
 from google.ads.googleads.client import GoogleAdsClient
 from google.ads.googleads.util import get_nested_attr
-from google.ads.googleads.v25.services.services.google_ads_service import (
-    GoogleAdsServiceClient,
-)
 
 from ads_mcp.mcp_header_interceptor import MCPHeaderInterceptor
 
@@ -108,8 +105,8 @@ def _get_googleads_client() -> GoogleAdsClient:
     return client
 
 
-def get_googleads_service(serviceName: str) -> GoogleAdsServiceClient:
-    return _get_googleads_client().get_service(  # type: ignore[no-any-return]
+def get_googleads_service(serviceName: str) -> Any:
+    return _get_googleads_client().get_service(
         serviceName, interceptors=[MCPHeaderInterceptor()]
     )
 

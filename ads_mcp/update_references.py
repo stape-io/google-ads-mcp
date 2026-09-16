@@ -14,13 +14,22 @@
 
 """Tools for generating file containing a list of resources and their fields."""
 
+from typing import cast
+
+from google.ads.googleads.v25.services.services.google_ads_field_service import (
+    GoogleAdsFieldServiceClient,
+)
+
 from ads_mcp import utils
 
 
 def update_gaql_resource_file():
     """Fetches all Google Ads resources, and saves to a flat text file."""
 
-    ga_service = utils.get_googleads_service("GoogleAdsFieldService")
+    ga_service = cast(
+        GoogleAdsFieldServiceClient,
+        utils.get_googleads_service("GoogleAdsFieldService"),
+    )
 
     request = utils.get_googleads_type("SearchGoogleAdsFieldsRequest")
 
