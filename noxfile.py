@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import nox
 import sys
+
+import nox
 
 PYTHON_VERSIONS = ["3.10", "3.11", "3.12", "3.13"]
 
@@ -50,15 +51,7 @@ def _format(session, check=False):
     if check:
         black_command.append("--check")
 
-    black_command.extend(
-        [
-            "-l",
-            "80",
-            "--exclude",
-            r"/(v[0-9]+|\.eggs|\.git|_cache|\.nox|\.tox|\.venv|env|venv|\.svn|_build|buck-out|build|dist)/",
-            ".",
-        ]
-    )
+    black_command.append(".")
 
     session.run(*black_command)
 

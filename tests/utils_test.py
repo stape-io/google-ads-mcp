@@ -17,12 +17,11 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
+from ads_mcp import utils
+from google.ads.googleads.v25.common.types.metrics import Metrics
 from google.ads.googleads.v25.enums.types.campaign_status import (
     CampaignStatusEnum,
 )
-from google.ads.googleads.v25.common.types.metrics import Metrics
-
-from ads_mcp import utils
 
 
 class TestUtils(unittest.TestCase):

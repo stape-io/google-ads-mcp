@@ -15,7 +15,6 @@
 """Tests for the metrics resource."""
 
 import unittest
-import urllib.request
 from unittest import mock
 
 from ads_mcp.resources import metrics

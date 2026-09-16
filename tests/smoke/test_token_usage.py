@@ -16,8 +16,9 @@ import json
 import os
 import sys
 import time
-from tests.smoke import smoke_utils
+
 from google.genai import types
+from tests.smoke import smoke_utils
 
 try:
     from tests.smoke import llm_sender
@@ -65,7 +66,7 @@ def main():
         print(f"LLM cases file not found at {cases_path}")
         sys.exit(1)
 
-    with open(cases_path, "r") as f:
+    with open(cases_path) as f:
         cases = json.load(f)
 
     print("Fetching tools list from server...")
@@ -156,7 +157,7 @@ def main():
                             )
                         else:
                             print(
-                                f"  [INFO] No tool token baseline found for comparison."
+                                "  [INFO] No tool token baseline found for comparison."
                             )
 
                     except Exception as e:

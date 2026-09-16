@@ -15,8 +15,9 @@
 import json
 import os
 import sys
-from tests.smoke import smoke_utils
+
 from google.genai import types
+from tests.smoke import smoke_utils
 
 try:
     from tests.smoke import llm_sender
@@ -84,7 +85,7 @@ def main():
             return
 
         print(f"Updating LLM baselines in {cases_path}...")
-        with open(cases_path, "r") as f:
+        with open(cases_path) as f:
             cases = json.load(f)
 
         tools = tools_list.get("tools", [])

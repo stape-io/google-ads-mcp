@@ -15,7 +15,6 @@
 """Tests for the release_notes resource."""
 
 import unittest
-import urllib.request
 from unittest import mock
 
 from ads_mcp.resources import release_notes
