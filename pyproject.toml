@@ -1,7 +1,7 @@
 [project]
 name = "google-ads-mcp"
 version = "0.0.1"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = "Apache-2.0"
 dependencies = [
     "google-ads>=31.2.0,<32.0.0",
@@ -100,7 +100,7 @@ extend-exclude = '/(v[0-9]+|_cache|env|venv)/'
 [tool.ruff]
 line-length = 80
 src = ["ads_mcp"]
-target-version = "py310"
+target-version = "py311"
 
 [tool.ruff.lint]
 select = [

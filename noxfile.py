@@ -16,7 +16,7 @@ import sys
 
 import nox
 
-PYTHON_VERSIONS = ["3.10", "3.11", "3.12", "3.13"]
+PYTHON_VERSIONS = ["3.11", "3.12", "3.13", "3.14"]
 
 TEST_COMMAND = [
     "coverage",
