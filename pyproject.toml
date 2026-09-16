@@ -48,6 +48,7 @@ google-ads-mcp-update-gaql = "ads_mcp.update_references:update_gaql_resource_fil
 [dependency-groups]
 dev = [
     "nox >=2025.5.1,<2026",
+    "py-key-value-aio[disk]>=0.4.4,<0.5.0",   # DiskStore for local auth storage
     {include-group = "lint"},
     {include-group = "test"},
 ]
