@@ -22,7 +22,6 @@ from ads_mcp.coordinator import mcp
 @mcp.resource(
     uri="resource://discovery-document",
     mime_type="application/json",
-    annotations={"readOnlyHint": True, "idempotentHint": True},
 )
 def get_discovery_document() -> str:
     """Retrieve the Google Ads API discovery document.
@@ -40,6 +39,12 @@ def get_discovery_document() -> str:
     """
     url = "https://googleads.googleapis.com/$discovery/rest?version=v25"
 
-    response = httpx.get(url, headers={"User-Agent": "Mozilla/5.0"})
+    # These docs pages are multi-MB; httpx's 5s default is not enough.
+    response = httpx.get(
+        url,
+        headers={"User-Agent": "Mozilla/5.0"},
+        follow_redirects=True,
+        timeout=30.0,
+    )
     response.raise_for_status()
     return response.text

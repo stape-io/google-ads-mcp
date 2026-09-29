@@ -151,8 +151,15 @@ def download_authenticated_url(url: str) -> bytes:
     credentials = _create_credentials()
     if not credentials.valid:
         credentials.refresh(google.auth.transport.requests.Request())
+    # Invoice PDFs are multi-MB; httpx's 5s default is not enough.
+    # follow_redirects is deliberately left off: httpx strips the
+    # Authorization header on cross-origin redirects, so following one
+    # would silently drop the credential and fail as a 401 instead of a
+    # legible 3xx.
     response = httpx.get(
-        url, headers={"Authorization": f"Bearer {credentials.token}"}
+        url,
+        headers={"Authorization": f"Bearer {credentials.token}"},
+        timeout=30.0,
     )
     response.raise_for_status()
     return response.content

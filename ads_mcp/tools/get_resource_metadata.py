@@ -27,7 +27,7 @@ from google.ads.googleads.v25.services.types.google_ads_field_service import (
 from mcp.types import ToolAnnotations
 
 
-@mcp.tool(annotations=ToolAnnotations(readOnlyHint=True))
+@mcp.tool(annotations=ToolAnnotations(read_only_hint=True))
 def get_resource_metadata(resource_name: str) -> dict[str, Any]:
     """Retrieves the selectable, filterable, and sortable fields for a specific Google Ads resource,
     including compatible metrics and segments.
