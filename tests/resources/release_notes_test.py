@@ -17,6 +17,7 @@
 import unittest
 from unittest import mock
 
+from ads_mcp import utils
 from ads_mcp.resources import release_notes
 
 
@@ -56,3 +57,19 @@ class ReleaseNotesTest(unittest.TestCase):
         release_notes.get_release_notes()
 
         mock_get.assert_called_once()
+
+    @mock.patch("ads_mcp.utils.time.monotonic")
+    @mock.patch("ads_mcp.resources.release_notes.httpx.get")
+    def test_read_after_ttl_refetches(self, mock_get, mock_monotonic):
+        mock_get.side_effect = [
+            mock.MagicMock(text="old"),
+            mock.MagicMock(text="new"),
+        ]
+
+        mock_monotonic.return_value = 1000.0
+        self.assertEqual(release_notes.get_release_notes(), "old")
+        mock_monotonic.return_value = 1000.0 + utils.RESOURCE_TTL_SECONDS - 1
+        self.assertEqual(release_notes.get_release_notes(), "old")
+        mock_monotonic.return_value = 1000.0 + utils.RESOURCE_TTL_SECONDS
+        self.assertEqual(release_notes.get_release_notes(), "new")
+        self.assertEqual(mock_get.call_count, 2)

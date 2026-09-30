@@ -34,6 +34,7 @@ from ads_mcp.tools import (  # noqa: F401
     invoices,
     search,
 )
+from ads_mcp.utils import allow_adc_fallback
 
 
 def run_server() -> None:
@@ -44,6 +45,7 @@ def run_server() -> None:
     if _CLIENT_ID and _CLIENT_SECRET:
         mcp.run(transport="streamable-http", port=port, host="0.0.0.0")
     else:
+        allow_adc_fallback()
         mcp.run()
 
 

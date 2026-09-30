@@ -14,18 +14,17 @@
 
 """Metrics resource."""
 
-import functools
-
 import httpx
 
 from ads_mcp.coordinator import mcp
+from ads_mcp.utils import RESOURCE_TTL_SECONDS, ttl_cache
 
 
 @mcp.resource(
     uri="resource://metrics",
     mime_type="text/html",
 )
-@functools.lru_cache(maxsize=1)
+@ttl_cache(RESOURCE_TTL_SECONDS)
 def get_metrics() -> str:
     """Retrieve the Google Ads API metrics documentation.
 

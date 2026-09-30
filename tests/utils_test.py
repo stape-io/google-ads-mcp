@@ -117,31 +117,43 @@ class TestUtils(unittest.TestCase):
 class TestCreateCredentials(unittest.TestCase):
     """Test cases for the caller-token / ADC fallback in _create_credentials."""
 
-    @patch("ads_mcp.auth.settings.GoogleAdsMCPSettings")
+    def setUp(self):
+        patcher = patch.object(utils, "_adc_fallback_allowed", False)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    @patch("google.auth.default")
     @patch("fastmcp.server.dependencies.get_access_token")
-    def test_no_caller_token_with_auth_provider_raises(
-        self, mock_get_access_token, mock_settings_cls
+    def test_no_caller_token_on_http_raises(
+        self, mock_get_access_token, mock_default
     ):
-        """An authenticated server must never silently fall back to its own
-        identity when the caller's token is missing."""
+        """HTTP entrypoints never opt in to ADC, so a request that lost its
+        caller context fails closed instead of using the server's identity."""
         mock_get_access_token.return_value = None
-        mock_settings_cls.return_value.auth_provider = "google"
 
         with self.assertRaises(ValueError):
             utils._create_credentials()
 
+        mock_default.assert_not_called()
+
+    @patch.dict(
+        "os.environ",
+        {
+            "GOOGLE_ADS_MCP_AUTH_PROVIDER": "remote",
+            "GOOGLE_ADS_MCP_AUTH_SERVER_URL": "https://auth.example.com",
+        },
+    )
     @patch("google.auth.default")
-    @patch("ads_mcp.auth.settings.GoogleAdsMCPSettings")
     @patch("fastmcp.server.dependencies.get_access_token")
-    def test_no_caller_token_without_auth_provider_uses_adc(
-        self, mock_get_access_token, mock_settings_cls, mock_default
+    def test_no_caller_token_on_stdio_uses_adc(
+        self, mock_get_access_token, mock_default
     ):
-        """stdio/local mode has no auth provider configured, so ADC remains
-        the intended fallback."""
+        """stdio opts in via allow_adc_fallback, even when an auth provider is
+        configured in .env (the example.env setup)."""
         mock_get_access_token.return_value = None
-        mock_settings_cls.return_value.auth_provider = None
         mock_default.return_value = (MagicMock(), None)
 
+        utils.allow_adc_fallback()
         utils._create_credentials()
 
         mock_default.assert_called_once()
