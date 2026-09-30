@@ -83,7 +83,7 @@ def ttl_cache(seconds: float):
             nonlocal cached
             cached = None
 
-        wrapper.cache_clear = cache_clear  # type: ignore[attr-defined]
+        wrapper.cache_clear = cache_clear
         return wrapper
 
     return decorator

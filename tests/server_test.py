@@ -64,9 +64,9 @@ class DeployedAppCredentialPolicyTest(unittest.TestCase):
     def test_importing_server_app_does_not_allow_adc(self):
         """`uvicorn server:app` never goes through run_server, so it must stay
         fail-closed on the server's own identity."""
-        import server  # noqa: F401
-
         from ads_mcp import utils
+
+        import server  # noqa: F401
 
         self.assertFalse(utils._adc_fallback_allowed)
 
