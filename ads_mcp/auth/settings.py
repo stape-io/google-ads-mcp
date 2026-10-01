@@ -60,13 +60,11 @@ class GoogleAdsMCPAuthStorageSettings(BaseSettings):
     encryption_key: SecretBytes | None = None
     disk_directory: str | None = None
 
-
     @model_validator(mode="after")
     def validate_modeled_fields(self) -> "GoogleAdsMCPAuthStorageSettings":
         if self.type == "redis" and not self.redis_url:
             raise ValueError("redis_url must be set when type is 'redis'")
         return self
-
 
     # @field_validator("encryption_key", mode="before")
     # @classmethod
@@ -82,7 +80,6 @@ class GoogleAdsMCPAuthStorageSettings(BaseSettings):
     #     if isinstance(v, SecretBytes):
     #         return v
     #     return None
-
 
 
 class GoogleAdsMCPTokenVerifierSettings(BaseSettings):

@@ -293,7 +293,7 @@ Then restart your MCP client.
 
 ## Local Development
 
-This server runs on Python 3.10+ and [`uv`](https://docs.astral.sh/uv/) for dependency management, with [`nox`](https://nox.thea.codes/) driving lint/test sessions.
+This server runs on Python 3.11+ and [`uv`](https://docs.astral.sh/uv/) for dependency management, with [`nox`](https://nox.thea.codes/) driving lint/test sessions.
 
 ### Setup
 
@@ -332,7 +332,7 @@ Point your MCP client at the local checkout instead of the hosted URL:
 ### Testing
 
 ```bash
-nox -s tests         # unit tests, across Python 3.10-3.13
+nox -s tests         # unit tests, across Python 3.11-3.14
 nox -s smoke_tests    # boots the real server over stdio, diffs tools/list & resources/list against golden files
 nox -s llm_tests      # tool-selection tests against Gemini, needs GEMINI_API_KEY
 ```

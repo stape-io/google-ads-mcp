@@ -17,12 +17,14 @@
 import httpx
 
 from ads_mcp.coordinator import mcp
+from ads_mcp.utils import RESOURCE_TTL_SECONDS, ttl_cache
 
 
 @mcp.resource(
     uri="resource://release-notes",
     mime_type="text/html",
 )
+@ttl_cache(RESOURCE_TTL_SECONDS)
 def get_release_notes() -> str:
     """Retrieve the Google Ads API release notes.
 

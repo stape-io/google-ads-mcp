@@ -14,9 +14,10 @@
 
 import json
 import os
-import unittest
 import sys
 import time
+import unittest
+
 from tests.smoke import smoke_utils
 
 # We import llm_sender inside the test method or module, but we need to make sure
@@ -51,7 +52,7 @@ class LLMToolSelectionTest(unittest.TestCase):
         if not os.path.exists(cases_path):
             self.fail(f"Test cases file not found at {cases_path}")
 
-        with open(cases_path, "r") as f:
+        with open(cases_path) as f:
             cases = json.load(f)
 
         # 3. specific test for each case

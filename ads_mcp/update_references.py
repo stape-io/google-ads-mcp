@@ -14,13 +14,22 @@
 
 """Tools for generating file containing a list of resources and their fields."""
 
+from typing import cast
+
+from google.ads.googleads.v25.services.services.google_ads_field_service import (
+    GoogleAdsFieldServiceClient,
+)
+
 from ads_mcp import utils
 
 
 def update_gaql_resource_file():
     """Fetches all Google Ads resources, and saves to a flat text file."""
 
-    ga_service = utils.get_googleads_service("GoogleAdsFieldService")
+    ga_service = cast(
+        GoogleAdsFieldServiceClient,
+        utils.get_googleads_service("GoogleAdsFieldService"),
+    )
 
     request = utils.get_googleads_type("SearchGoogleAdsFieldsRequest")
 
@@ -44,7 +53,7 @@ def update_gaql_resource_file():
         resource_names.add(googleads_field.name)
 
     # Sort the list of resources for consistent output
-    output_list = sorted(list(resource_names))
+    output_list = sorted(resource_names)
 
     file_path = utils.get_gaql_resources_filepath()
 
@@ -52,7 +61,7 @@ def update_gaql_resource_file():
         with open(file_path, "w") as file:
             file.write("\n".join(output_list) + "\n")
         print(f"Successfully updated resource file: {file_path}")
-    except IOError as e:
+    except OSError as e:
         raise RuntimeError(f"Failed to write to file {file_path}: {e}")
 
 

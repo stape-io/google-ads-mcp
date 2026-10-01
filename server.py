@@ -11,4 +11,5 @@ app = mcp.http_app(stateless_http=True)
 def healthz(_: Request) -> Response:
     return JSONResponse(content={"status": "ok"})
 
+
 app.add_route("/healthz", healthz, methods=["GET"])
