@@ -1,3 +1,4 @@
 #include field data for search
 include ads_mcp/*.json
 include ads_mcp/*.txt
+include NOTICE
