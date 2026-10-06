@@ -26,7 +26,7 @@ from fastmcp.exceptions import ToolError
 from mcp.types import ToolAnnotations
 
 
-@mcp.tool(annotations=ToolAnnotations(readOnlyHint=True))
+@mcp.tool(annotations=ToolAnnotations(read_only_hint=True))
 def list_invoices(
     customer_id: str,
     billing_setup_id: str,
@@ -79,7 +79,7 @@ def list_invoices(
     return [proto.Message.to_dict(invoice) for invoice in response.invoices]
 
 
-@mcp.tool(annotations=ToolAnnotations(readOnlyHint=True))
+@mcp.tool(annotations=ToolAnnotations(read_only_hint=True))
 def download_invoice_pdf(pdf_url: str) -> dict[str, Any]:
     """Downloads one invoice's PDF document.
 

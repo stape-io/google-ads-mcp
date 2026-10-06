@@ -5,9 +5,14 @@ requires-python = ">=3.10"
 license = "Apache-2.0"
 dependencies = [
     "google-ads>=31.2.0,<32.0.0",
-    "mcp[cli]>=1.2.0",
-    "fastmcp>=3.2.0",
+    "mcp>=2.2.0,<3",
+    "fastmcp>=4.0.3,<5",
     "joserfc>=1.6.5",
+    # Direct pin required: as of mcp 2.x / fastmcp 4.x the SDK uses httpx2, so
+    # httpx v1 is no longer transitive. ads_mcp/auth/, ads_mcp/resources/ and
+    # ads_mcp/utils.py still use it directly. Note the two clients resolve TLS
+    # differently -- httpx2 via the OS trust store, httpx v1 via certifi -- so
+    # the runtime image must ship a CA bundle.
     "httpx>=0.28.1",
 ]
 

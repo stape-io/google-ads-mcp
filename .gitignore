@@ -39,3 +39,6 @@ coverage.xml
 
 .env
 .venv
+
+# Local agent working files (plans, notes) -- not part of the codebase
+.agents/
