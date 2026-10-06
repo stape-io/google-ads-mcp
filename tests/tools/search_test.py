@@ -15,7 +15,7 @@
 """Test cases for the search tool."""
 
 import unittest
-from unittest.mock import MagicMock, patch, mock_open
+from unittest.mock import MagicMock, mock_open, patch
 
 from ads_mcp.tools import search
 

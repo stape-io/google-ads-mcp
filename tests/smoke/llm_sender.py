@@ -13,12 +13,10 @@
 # limitations under the License.
 
 import os
-import json
 import sys
 import time
-from google.genai import types
-from google.genai import Client
-from google.genai import errors
+
+from google.genai import Client, errors, types
 from tests.smoke import smoke_utils
 
 

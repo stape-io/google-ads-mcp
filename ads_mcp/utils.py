@@ -16,9 +16,11 @@
 
 """Common utilities used by the MCP server."""
 
+import functools
 import importlib.resources
 import logging
 import os
+import time
 from contextvars import ContextVar
 from typing import Any
 
@@ -28,9 +30,6 @@ import httpx
 import proto
 from google.ads.googleads.client import GoogleAdsClient
 from google.ads.googleads.util import get_nested_attr
-from google.ads.googleads.v25.services.services.google_ads_service import (
-    GoogleAdsServiceClient,
-)
 
 from ads_mcp.mcp_header_interceptor import MCPHeaderInterceptor
 
@@ -57,6 +56,55 @@ def set_login_customer_id(customer_id: str | None) -> None:
     _login_customer_id_var.set(customer_id)
 
 
+# How long the multi-MB Google docs resources are served from memory. Bounded
+# because several of them track moving targets (`latest`, release notes).
+RESOURCE_TTL_SECONDS = 6 * 60 * 60
+
+
+def ttl_cache(seconds: float):
+    """Caches a zero-argument function's result for `seconds`.
+
+    Unlike functools.lru_cache, the value expires, so a long-running server
+    picks up changes Google publishes. Keeps `cache_clear` for tests.
+    """
+
+    def decorator(fn):
+        cached: tuple[float, Any] | None = None
+
+        @functools.wraps(fn)
+        def wrapper():
+            nonlocal cached
+            now = time.monotonic()
+            if cached is None or now - cached[0] >= seconds:
+                cached = (now, fn())
+            return cached[1]
+
+        def cache_clear() -> None:
+            nonlocal cached
+            cached = None
+
+        wrapper.cache_clear = cache_clear
+        return wrapper
+
+    return decorator
+
+
+# ADC is this server's own identity, so it is only allowed when the process is
+# explicitly running over stdio (see run_server). Defaulting to False keeps
+# every HTTP entrypoint (run_server's HTTP branch and `server:app`) fail-closed,
+# including when a request loses its caller context.
+_adc_fallback_allowed = False
+
+
+def allow_adc_fallback() -> None:
+    """Permit Application Default Credentials when no caller token exists.
+
+    Call only from a stdio entrypoint, where the local user is the caller.
+    """
+    global _adc_fallback_allowed
+    _adc_fallback_allowed = True
+
+
 def _create_credentials() -> google.auth.credentials.Credentials:
     """Returns Application Default Credentials with the Google Ads scope, or the FastMCP token if found."""
     from fastmcp.server.dependencies import get_access_token
@@ -66,6 +114,15 @@ def _create_credentials() -> google.auth.credentials.Credentials:
     if token_obj and token_obj.token:
         # Create credentials using the access token provided by FastMCP
         return Credentials(token=token_obj.token)
+
+    # No caller token. ADC is the intended path for stdio/local use only; over
+    # HTTP every request belongs to a user, so falling back would silently run
+    # their query as this server's own identity instead of failing loudly.
+    if not _adc_fallback_allowed:
+        raise ValueError(
+            "No caller credentials available on an HTTP server; "
+            "refusing to fall back to this server's own identity."
+        )
 
     credentials, _ = google.auth.default(scopes=[_ADS_SCOPE])
     return credentials
@@ -108,8 +165,8 @@ def _get_googleads_client() -> GoogleAdsClient:
     return client
 
 
-def get_googleads_service(serviceName: str) -> GoogleAdsServiceClient:
-    return _get_googleads_client().get_service(  # type: ignore[no-any-return]
+def get_googleads_service(serviceName: str) -> Any:
+    return _get_googleads_client().get_service(
         serviceName, interceptors=[MCPHeaderInterceptor()]
     )
 

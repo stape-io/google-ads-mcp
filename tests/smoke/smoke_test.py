@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import difflib
 import json
 import os
 import unittest
+
 from tests.smoke import smoke_utils
-import difflib
 
 
 class SmokeTest(unittest.TestCase):
@@ -37,7 +38,7 @@ class SmokeTest(unittest.TestCase):
                 f"Golden file not found at {golden_path}. Run tests/smoke/generate_golden.py to create it."
             )
 
-        with open(golden_path, "r") as f:
+        with open(golden_path) as f:
             golden_tools = json.load(f)
 
         # Convert to string for diffing
@@ -74,7 +75,7 @@ class SmokeTest(unittest.TestCase):
                 f"Golden resources file not found at {golden_path}. Run tests/smoke/generate_golden.py to create it."
             )
 
-        with open(golden_path, "r") as f:
+        with open(golden_path) as f:
             golden_resources = json.load(f)
 
         # Convert to string for diffing

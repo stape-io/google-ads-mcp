@@ -17,12 +17,11 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
+from ads_mcp import utils
+from google.ads.googleads.v25.common.types.metrics import Metrics
 from google.ads.googleads.v25.enums.types.campaign_status import (
     CampaignStatusEnum,
 )
-from google.ads.googleads.v25.common.types.metrics import Metrics
-
-from ads_mcp import utils
 
 
 class TestUtils(unittest.TestCase):
@@ -113,3 +112,48 @@ class TestUtils(unittest.TestCase):
         utils.download_authenticated_url("https://example.com/f")
 
         mock_credentials.refresh.assert_called_once()
+
+
+class TestCreateCredentials(unittest.TestCase):
+    """Test cases for the caller-token / ADC fallback in _create_credentials."""
+
+    def setUp(self):
+        patcher = patch.object(utils, "_adc_fallback_allowed", False)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    @patch("google.auth.default")
+    @patch("fastmcp.server.dependencies.get_access_token")
+    def test_no_caller_token_on_http_raises(
+        self, mock_get_access_token, mock_default
+    ):
+        """HTTP entrypoints never opt in to ADC, so a request that lost its
+        caller context fails closed instead of using the server's identity."""
+        mock_get_access_token.return_value = None
+
+        with self.assertRaises(ValueError):
+            utils._create_credentials()
+
+        mock_default.assert_not_called()
+
+    @patch.dict(
+        "os.environ",
+        {
+            "GOOGLE_ADS_MCP_AUTH_PROVIDER": "remote",
+            "GOOGLE_ADS_MCP_AUTH_SERVER_URL": "https://auth.example.com",
+        },
+    )
+    @patch("google.auth.default")
+    @patch("fastmcp.server.dependencies.get_access_token")
+    def test_no_caller_token_on_stdio_uses_adc(
+        self, mock_get_access_token, mock_default
+    ):
+        """stdio opts in via allow_adc_fallback, even when an auth provider is
+        configured in .env (the example.env setup)."""
+        mock_get_access_token.return_value = None
+        mock_default.return_value = (MagicMock(), None)
+
+        utils.allow_adc_fallback()
+        utils._create_credentials()
+
+        mock_default.assert_called_once()

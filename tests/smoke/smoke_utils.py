@@ -14,11 +14,10 @@
 
 import contextlib
 import json
+import os
 import subprocess
 import sys
-import threading
-import os
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 def start_server_process() -> subprocess.Popen:
@@ -42,7 +41,7 @@ def start_server_process() -> subprocess.Popen:
 def send_request(
     process: subprocess.Popen,
     method: str,
-    params: Optional[Dict[str, Any]] = None,
+    params: dict[str, Any] | None = None,
     req_id: int = 1,
 ) -> None:
     """Sends a JSON-RPC request or notification to the server."""
@@ -61,7 +60,7 @@ def send_request(
     process.stdin.flush()
 
 
-def read_response(process: subprocess.Popen) -> Dict[str, Any]:
+def read_response(process: subprocess.Popen) -> dict[str, Any]:
     """Reads a JSON-RPC response from the server."""
     for line in process.stdout:
         try:
@@ -106,7 +105,7 @@ def initialized_server():
         process.wait()
 
 
-def get_tools_list() -> Dict[str, Any]:
+def get_tools_list() -> dict[str, Any]:
     """Runs the server and retrieves the list of tools."""
     with initialized_server() as process:
         send_request(process, "tools/list", req_id=2)
@@ -118,7 +117,7 @@ def get_tools_list() -> Dict[str, Any]:
         return response["result"]
 
 
-def get_resources_list() -> Dict[str, Any]:
+def get_resources_list() -> dict[str, Any]:
     """Runs the server and retrieves the list of resources."""
     with initialized_server() as process:
         send_request(process, "resources/list", req_id=2)
@@ -136,7 +135,7 @@ def inject_customer_id(prompt: str) -> str:
     return prompt.replace("{customer_id}", customer_id)
 
 
-def call_tool(name: str, arguments: dict) -> Dict[str, Any]:
+def call_tool(name: str, arguments: dict) -> dict[str, Any]:
     """Runs the server and calls a specific tool."""
     with initialized_server() as process:
         send_request(

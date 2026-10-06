@@ -15,13 +15,16 @@
 """Tools for exposing the API Search method to the MCP server."""
 
 import inspect
-from typing import Any
+from typing import Any, cast
 
 import ads_mcp.utils as utils
 from ads_mcp.coordinator import mcp
 from fastmcp.exceptions import ToolError
 from fastmcp.tools import Tool
 from google.ads.googleads.errors import GoogleAdsException
+from google.ads.googleads.v25.services.services.google_ads_service import (
+    GoogleAdsServiceClient,
+)
 from mcp.types import ToolAnnotations
 
 
@@ -49,7 +52,9 @@ def search(
     if login_customer_id:
         utils.set_login_customer_id(login_customer_id)
 
-    ga_service = utils.get_googleads_service("GoogleAdsService")
+    ga_service = cast(
+        GoogleAdsServiceClient, utils.get_googleads_service("GoogleAdsService")
+    )
 
     query_parts = [f"SELECT {','.join(fields)} FROM {resource}"]
 

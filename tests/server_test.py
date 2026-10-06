@@ -15,6 +15,7 @@
 """Test cases for the server module."""
 
 import unittest
+from unittest import mock
 
 
 class TestUtils(unittest.TestCase):
@@ -29,6 +30,45 @@ class TestUtils(unittest.TestCase):
         from ads_mcp import server
 
         self.assertIsNotNone(server.mcp, "MCP server instance not initialized")
+
+
+class RunServerCredentialPolicyTest(unittest.TestCase):
+    """Only the stdio branch may opt in to the ADC fallback."""
+
+    @mock.patch("ads_mcp.server.mcp.run")
+    @mock.patch("ads_mcp.server.allow_adc_fallback")
+    def test_stdio_allows_adc(self, mock_allow, _run):
+        from ads_mcp import server
+
+        with mock.patch.dict("os.environ", {}, clear=True):
+            server.run_server()
+
+        mock_allow.assert_called_once()
+
+    @mock.patch("ads_mcp.server.mcp.run")
+    @mock.patch("ads_mcp.server.allow_adc_fallback")
+    def test_http_does_not_allow_adc(self, mock_allow, _run):
+        from ads_mcp import server
+
+        env = {
+            "GOOGLE_ADS_MCP_OAUTH_CLIENT_ID": "id",
+            "GOOGLE_ADS_MCP_OAUTH_CLIENT_SECRET": "secret",
+        }
+        with mock.patch.dict("os.environ", env, clear=True):
+            server.run_server()
+
+        mock_allow.assert_not_called()
+
+
+class DeployedAppCredentialPolicyTest(unittest.TestCase):
+    def test_importing_server_app_does_not_allow_adc(self):
+        """`uvicorn server:app` never goes through run_server, so it must stay
+        fail-closed on the server's own identity."""
+        from ads_mcp import utils
+
+        import server  # noqa: F401
+
+        self.assertFalse(utils._adc_fallback_allowed)
 
 
 class ProtocolNegotiationTest(unittest.IsolatedAsyncioTestCase):

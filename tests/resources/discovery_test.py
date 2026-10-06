@@ -21,6 +21,9 @@ from ads_mcp.resources import discovery
 
 
 class DiscoveryTest(unittest.TestCase):
+    def setUp(self):
+        discovery.get_discovery_document.cache_clear()
+
     @mock.patch("ads_mcp.resources.discovery.httpx.get")
     def test_get_discovery_document(self, mock_get):
         # Setup mock response
@@ -42,3 +45,14 @@ class DiscoveryTest(unittest.TestCase):
             timeout=30.0,
         )
         mock_response.raise_for_status.assert_called_once()
+
+    @mock.patch("ads_mcp.resources.discovery.httpx.get")
+    def test_second_read_does_not_refetch(self, mock_get):
+        mock_get.return_value = mock.MagicMock(
+            text='{"mock": "discovery content"}'
+        )
+
+        discovery.get_discovery_document()
+        discovery.get_discovery_document()
+
+        mock_get.assert_called_once()

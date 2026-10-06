@@ -17,12 +17,14 @@
 import httpx
 
 from ads_mcp.coordinator import mcp
+from ads_mcp.utils import RESOURCE_TTL_SECONDS, ttl_cache
 
 
 @mcp.resource(
     uri="resource://discovery-document",
     mime_type="application/json",
 )
+@ttl_cache(RESOURCE_TTL_SECONDS)
 def get_discovery_document() -> str:
     """Retrieve the Google Ads API discovery document.
 
