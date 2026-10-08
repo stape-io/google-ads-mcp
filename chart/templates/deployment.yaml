@@ -68,6 +68,12 @@ spec:
                 secretKeyRef:
                   name: {{ .Release.Name }}
                   key: GOOGLE_ADS_ENCRYPTION_KEY
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 5
+            failureThreshold: 24
           livenessProbe:
             httpGet:
               path: /healthz

@@ -6,5 +6,5 @@ image:
   tag: 4216eb2-37470435535-1
 resources:
   requests:
-    cpu: 20m
+    cpu: 150m
     memory: 300Mi
