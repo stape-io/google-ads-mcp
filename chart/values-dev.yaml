@@ -1,8 +1,7 @@
 onePasswordSecrets:
-  vault: 'google-ads-mcp-dev'
-  manualItem: 'google-ads-mcp_dev-manual'
-
+  vault: google-ads-mcp-dev
+  manualItem: google-ads-mcp_dev-manual
 host: mcp-google-ads.stape.dev
 image:
   repository: europe-west1-docker.pkg.dev/stape-development/stape/google-ads-mcp
-  tag: 0b31e83-35258646066-1
+  tag: e87f94c-37829089874-1
