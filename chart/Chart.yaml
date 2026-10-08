@@ -1,5 +1,5 @@
 apiVersion: v2
-name: mcp-gads
+name: google-ads-mcp
 description: A Helm chart for deploying Google Ads MCP server with Google OAuth or remote auth provider
 type: application
 version: 0.1.0
