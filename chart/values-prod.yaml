@@ -9,5 +9,5 @@ image:
   tag: ac5242f-37829592849-1
 resources:
   requests:
-    cpu: 20m
+    cpu: 150m
     memory: 300Mi
