@@ -11,4 +11,10 @@ resources:
 autoscaling:
   enabled: false
 
+# Items named in full: a rename in 1Password then fails loudly instead of
+# yielding a Secret with no fields. See templates/onepassword-items.yaml.
+onePasswordSecrets:
+  vault: 'google-ads-mcp-dev'
+  manualItem: 'google-ads-mcp_dev-manual'
+
 host: "example.com"
