@@ -6,7 +6,7 @@ autoscaling:
 host: mcp-google-ads.stape.io
 image:
   repository: europe-west1-docker.pkg.dev/stape-production/stape/google-ads-mcp
-  tag: ac5242f-37829592849-1
+  tag: 3564559-37910095559-1
 resources:
   requests:
     cpu: 150m
