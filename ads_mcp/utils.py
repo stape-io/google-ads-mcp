@@ -22,6 +22,7 @@ import importlib.resources
 import logging
 import os
 import time
+from collections.abc import Set
 from contextvars import ContextVar
 from typing import Any
 
@@ -204,8 +205,56 @@ def get_gaql_resources_filepath():
     return file_path
 
 
-def download_authenticated_url(url: str) -> bytes:
-    """Downloads a URL that requires the same Ads OAuth credentials as gRPC calls."""
+def _describe_url(url: httpx.URL) -> str:
+    """Scheme and host only, for error messages: the path or query of a
+    download URL may carry signed tokens."""
+    return f"{url.scheme or '(no scheme)'}://{url.host or '(no host)'}"
+
+
+def _parse_authenticated_download_url(
+    url: str, allowed_hosts: Set[str]
+) -> httpx.URL:
+    """Parses `url` and rejects it unless it is https on one of `allowed_hosts`.
+
+    Hosts match exactly (no subdomains), and URLs with an explicit non-default
+    port or userinfo are rejected. Returns the parsed URL so the caller
+    requests exactly what was checked.
+    """
+    # Checked at runtime too: a bare str would turn the membership test below
+    # into a substring test.
+    if not isinstance(allowed_hosts, (set, frozenset)):
+        raise TypeError(
+            "allowed_hosts must be a set or frozenset of host names"
+        )
+    try:
+        parsed = httpx.URL(url)
+        # Reading .host can raise too (e.g. idna.IDNAError, a ValueError).
+        host = parsed.host
+    except (httpx.InvalidURL, ValueError) as ex:
+        raise ValueError(f"Invalid URL: {ex}") from ex
+    if (
+        parsed.scheme != "https"
+        or host not in allowed_hosts
+        # httpx normalizes the scheme's default port (:443) to None.
+        or parsed.port is not None
+        or parsed.userinfo
+    ):
+        allowed = " or ".join(f"https://{h}/" for h in sorted(allowed_hosts))
+        raise ValueError(
+            "Refusing to send Google Ads credentials to "
+            f"{_describe_url(parsed)}: only URLs on {allowed} are allowed."
+        )
+    return parsed
+
+
+def download_authenticated_url(url: str, *, allowed_hosts: Set[str]) -> bytes:
+    """Downloads a URL that requires the same Ads OAuth credentials as gRPC calls.
+
+    The caller names the hosts the credentials may be sent to; any other URL
+    is rejected before credentials are fetched. See
+    `_parse_authenticated_download_url`.
+    """
+    parsed_url = _parse_authenticated_download_url(url, allowed_hosts)
     credentials = _create_credentials()
     if not credentials.valid:
         credentials.refresh(google.auth.transport.requests.Request())
@@ -215,9 +264,18 @@ def download_authenticated_url(url: str) -> bytes:
     # would silently drop the credential and fail as a 401 instead of a
     # legible 3xx.
     response = httpx.get(
-        url,
+        parsed_url,
         headers={"Authorization": f"Bearer {credentials.token}"},
         timeout=30.0,
     )
-    response.raise_for_status()
+    try:
+        response.raise_for_status()
+    except httpx.HTTPStatusError as ex:
+        # httpx's own message includes the full URL.
+        raise httpx.HTTPStatusError(
+            f"HTTP {response.status_code} {response.reason_phrase} from "
+            f"{_describe_url(parsed_url)}",
+            request=ex.request,
+            response=ex.response,
+        ) from None
     return response.content
