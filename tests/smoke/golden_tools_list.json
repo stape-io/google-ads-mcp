@@ -9,17 +9,49 @@
       "annotations": {
         "readOnlyHint": true
       },
-      "description": "Downloads one invoice's PDF document.",
+      "description": "Downloads one invoice's PDF document.\n\nTakes the same arguments as `list_invoices` plus the invoice's `id`. The\ninvoice is looked up again and the PDF Google links it to is downloaded.",
       "inputSchema": {
         "additionalProperties": false,
         "properties": {
-          "pdf_url": {
-            "description": "The `pdf_url` of an invoice, as returned by `list_invoices`.",
+          "billing_setup_id": {
+            "description": "The numeric id of the billing setup the invoice\nbelongs to.",
             "type": "string"
+          },
+          "customer_id": {
+            "description": "The id of the serving customer account (plain numeric\nstring, e.g. \"1234567890\").",
+            "type": "string"
+          },
+          "invoice_id": {
+            "description": "The `id` of the invoice, as returned by `list_invoices`.",
+            "type": "string"
+          },
+          "issue_month": {
+            "description": "The invoice issue month name in uppercase, e.g. \"MARCH\".",
+            "type": "string"
+          },
+          "issue_year": {
+            "description": "The invoice issue year, e.g. \"2026\".",
+            "type": "string"
+          },
+          "login_customer_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "The customer ID of the manager account, required\nwhen customer_id is a client account (sub-account) under a\nmanager (MCC) \u2014 same as `list_invoices`."
           }
         },
         "required": [
-          "pdf_url"
+          "customer_id",
+          "billing_setup_id",
+          "issue_year",
+          "issue_month",
+          "invoice_id"
         ],
         "type": "object"
       },
@@ -102,7 +134,7 @@
       "annotations": {
         "readOnlyHint": true
       },
-      "description": "Lists invoices issued for a given billing setup and month.\n\nRequires the account to have monthly invoicing enabled. Most advertisers\nare on automatic payments and will get an empty result or an error for\nthis tool.",
+      "description": "Lists invoices issued for a given billing setup and month.\n\nRequires the account to have monthly invoicing enabled. Most advertisers\nare on automatic payments and will get an empty result or an error for\nthis tool.\n\nTo get an invoice's PDF, pass its `id` with the same arguments to\n`download_invoice_pdf`.",
       "inputSchema": {
         "additionalProperties": false,
         "properties": {

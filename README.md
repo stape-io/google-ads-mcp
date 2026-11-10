@@ -61,7 +61,7 @@ Given a resource name (e.g. `campaign`, `ad_group`), returns which fields on it 
 
 ### `list_invoices`
 
-Lists invoices issued for a given billing setup and month. Requires the account to have monthly invoicing enabled — most advertisers are on automatic payments and won't have any invoices to list.
+Lists invoices issued for a given billing setup and month. Requires the account to have monthly invoicing enabled — most advertisers are on automatic payments and won't have any invoices to list. To get an invoice's PDF, pass its `id` to `download_invoice_pdf` with the same arguments.
 
 | Argument | Required | Description |
 | --- | --- | --- |
@@ -73,11 +73,16 @@ Lists invoices issued for a given billing setup and month. Requires the account 
 
 ### `download_invoice_pdf`
 
-Downloads one invoice's PDF, given the `pdf_url` returned by `list_invoices`.
+Downloads one invoice's PDF. Takes the same arguments as `list_invoices` plus the invoice's `id`, looks the invoice up and downloads the PDF Google links it to.
 
 | Argument | Required | Description |
 | --- | --- | --- |
-| `pdf_url` | yes | The `pdf_url` field from a `list_invoices` result |
+| `customer_id` | yes | Plain numeric ID of the serving customer account |
+| `billing_setup_id` | yes | Numeric billing setup ID the invoice belongs to |
+| `issue_year` | yes | Invoice issue year, e.g. `"2026"` |
+| `issue_month` | yes | Invoice issue month name, e.g. `"march"` |
+| `invoice_id` | yes | The `id` field from a `list_invoices` result |
+| `login_customer_id` | no | Manager (MCC) account ID — same rule as `list_invoices` |
 
 Returns a JSON object (`content_type`, `content_base64`) rather than raw bytes, since MCP tool results must be JSON-serializable.
 
