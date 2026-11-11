@@ -4,4 +4,10 @@ onePasswordSecrets:
 host: mcp-google-ads.stape.dev
 image:
   repository: europe-west1-docker.pkg.dev/stape-development/stape/google-ads-mcp
-  tag: 11c2716-37932314207-1
+  tag: 35656f5-43079207028-1
+vpa:
+  enabled: true
+  main:
+    minMemory: 64Mi
+    maxCpu: 500m
+    maxMemory: 512Mi
